@@ -1,9 +1,10 @@
 import Konva from 'konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Circle, Layer, Line, Rect, Stage, Text, Transformer } from 'react-konva';
+import { Circle, Label, Layer, Line, Rect, Stage, Tag, Text, Transformer } from 'react-konva';
 import { measureLabel } from '../../../domain/dimensions';
 import { pointToSegment } from '../../../domain/geometry';
+import { formatLengthShort } from '../../../domain/units';
 import { snapToGrid, snapToVertices, snapWallAngle } from '../../../domain/snapping';
 import type { RouteKind, Vec } from '../../../domain/scene';
 import { toWorld, usePlannerStore, type Selection } from '../../../store/usePlannerStore';
@@ -360,6 +361,28 @@ export default function PlannerCanvas() {
 
 	const toS = (p: Vec) => ({ x: p.x * view.scale + view.offsetX, y: p.y * view.scale + view.offsetY });
 
+	// живий підпис під час малювання: довжина сегмента + кут (або габарит прямокутника)
+	const drawHint: { at: Vec; text: string } | null = (() => {
+		const u = scene.settings.units;
+		if (rectStart && cursor) {
+			return {
+				at: toS(cursor),
+				text: `${formatLengthShort(Math.abs(cursor.x - rectStart.x), u)} × ${formatLengthShort(Math.abs(cursor.y - rectStart.y), u)}`,
+			};
+		}
+		let a: Vec | null = null;
+		if (tool === 'wall' && wallDraft && wallDraft.length > 0) a = wallDraft[wallDraft.length - 1];
+		else if (isChainTool && chain && chain.length > 0) a = chain[chain.length - 1];
+		else if (dimStart) a = dimStart;
+		if (!a || !cursor) return null;
+		const dx = cursor.x - a.x;
+		const dy = cursor.y - a.y;
+		const len = Math.hypot(dx, dy);
+		if (len < 1) return null;
+		const ang = (Math.round(-Math.atan2(dy, dx) * (180 / Math.PI)) + 360) % 360;
+		return { at: toS(cursor), text: `${formatLengthShort(len, u)}  ·  ${ang}°` };
+	})();
+
 	const cursorStyle = tool === 'pan' ? 'grab' : tool === 'select' ? 'default' : 'crosshair';
 
 	return (
@@ -450,6 +473,16 @@ export default function PlannerCanvas() {
 									fontStyle="bold"
 								/>
 							</>
+						)}
+						{drawHint && (
+							<Label
+								x={drawHint.at.x + (drawHint.at.x + 40 + drawHint.text.length * 7 > width ? -14 - drawHint.text.length * 7 : 14)}
+								y={drawHint.at.y + (drawHint.at.y + 44 > height ? -42 : 14)}
+								listening={false}
+							>
+								<Tag fill="#111827" cornerRadius={3} />
+								<Text text={drawHint.text} fill="#fff" fontSize={12} padding={5} />
+							</Label>
 						)}
 						{marquee && (
 							<Rect
