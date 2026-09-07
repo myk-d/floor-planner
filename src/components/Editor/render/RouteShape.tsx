@@ -27,7 +27,7 @@ export default function RouteShape({
 }) {
 	const u = 1 / scale;
 	const st = routeStyle(route.kind);
-	const col = colorOverride ?? (theme.name === 'blueprint' ? theme.dimension : st.color);
+	const col = colorOverride ?? route.color ?? (theme.name === 'blueprint' ? theme.dimension : st.color);
 	const flat = route.points.flatMap((p) => [p.x, p.y]);
 	return (
 		<Group onMouseDown={onMouseDown}>

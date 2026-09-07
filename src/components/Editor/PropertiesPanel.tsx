@@ -703,6 +703,21 @@ function RouteProps({ route, patch }: { route: Route; patch: Patch }) {
 			<Field label="Група/лінія">
 				<Input defaultValue={route.circuit ?? ''} onBlur={(e) => patch({ circuit: e.target.value || undefined })} placeholder="напр. Світло-1" />
 			</Field>
+			<Field label="Колір лінії">
+				<div className="flex items-center gap-2">
+					<input
+						type="color"
+						value={route.color ?? st.color}
+						onChange={(e) => patch({ color: e.target.value })}
+						className="h-9 w-full rounded-md border border-panel-border"
+					/>
+					{route.color && (
+						<button className="shrink-0 text-xs text-muted hover:text-page-text" onClick={() => patch({ color: undefined })}>
+							скинути
+						</button>
+					)}
+				</div>
+			</Field>
 			<div className="rounded-md bg-page-bg p-2 text-sm">
 				<span className="text-muted">Довжина: </span>
 				<span className="font-medium">{(len / 100).toFixed(2)} м</span>

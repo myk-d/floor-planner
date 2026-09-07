@@ -154,6 +154,8 @@ export interface Route {
 	/** переріз кабелю (мм²) / діаметр труби (Ø мм) */
 	gauge?: string;
 	circuit?: string;
+	/** ручний колір лінії; якщо не задано — колір за типом (`routeStyle`) */
+	color?: string;
 }
 
 export type ZoneKind = 'heat-cable' | 'heat-water' | 'screed' | 'plaster' | 'insulation' | 'waterproofing';

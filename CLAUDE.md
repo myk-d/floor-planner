@@ -36,7 +36,7 @@ geometry client-side.
   `ceilingHeight`/`wallFinish`/`ceilingFinish`/`skirting`/`cornice`; `SymbolItem` has
   `mountHeight` (auto via `symbolMountHeight(kind)` in `constants/engineering.ts`) + `links`
   (switch → fixture ids, see `domain/lighting.ts`);
-  `Route` carries `gauge`/`circuit`; `Zone.kind` covers
+  `Route` carries `gauge`/`circuit`/`color` (manual line-colour override); `Zone.kind` covers
   heat-cable/heat-water/screed/plaster/insulation/waterproofing. `settings`: `renderMode`
   (`line|blueprint|color`), `layers`, `showOverallChains`, `showDemolition`, `colorByCircuit`,
   `wallHeight`. **`normalizeScene` is the migration layer** — it back-fills every field and
@@ -105,7 +105,8 @@ geometry client-side.
 - `hatch.ts` — **procedural** canvas textures (`wallHatch`, `floorHatch`, `WALL_MATERIAL_COLOR`,
   `floorTint`): brick/wood-grain/concrete/glass walls, herringbone/plank/tile/carpet floors.
   Same canvases feed the 3D view as `CanvasTexture`.
-- `SymbolShape` / `RouteShape` (with `gauge` label + `colorOverride`) / `CompassMark`.
+- `SymbolShape` / `RouteShape` (`gauge` label; colour = circuit `colorOverride` → `Route.color` →
+  per-type default) / `CompassMark`.
 - `exportScene.tsx` — offscreen raster export (paper A4–A1, scale 1:20–1:200/DPI, title block,
   furniture spec + room explication tables). SVG export goes through `domain/svgExport.ts`
   instead (a real vector path, not Konva). `exportCompareToDataURL(primary, secondary, opts)`
