@@ -23,6 +23,8 @@ export interface Wall {
 	material: WallMaterial;
 	/** дефолт 'existing' */
 	status?: BuildStatus;
+	/** несуча стіна — попереджати при демонтажі */
+	loadBearing?: boolean;
 }
 
 export type FloorKind = 'none' | 'parquet' | 'laminate' | 'tile' | 'carpet' | 'concrete';
@@ -284,6 +286,7 @@ export function normalizeScene(raw: LegacyScene | undefined, title: string): Sce
 			thickness: w.thickness ?? base.settings.defaultWallThickness,
 			material: w.material ?? 'block',
 			status: w.status ?? 'existing',
+			loadBearing: w.loadBearing ?? false,
 		})),
 		rooms: (raw.rooms ?? []).map((r) => ({ ...r, floor: r.floor ?? { ...DEFAULT_FLOOR } })),
 		surfaces: raw.surfaces ?? base.surfaces,

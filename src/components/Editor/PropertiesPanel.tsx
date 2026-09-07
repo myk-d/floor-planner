@@ -261,6 +261,15 @@ function WallProps({ wall, patch, select }: { wall: Wall; patch: Patch; select: 
 					))}
 				</Select>
 			</Field>
+			<label className="flex items-center gap-2 text-sm">
+				<input type="checkbox" checked={!!wall.loadBearing} onChange={(e) => patch({ loadBearing: e.target.checked })} />
+				Несуча стіна
+			</label>
+			{wall.loadBearing && wall.status === 'demolish' && (
+				<p className="rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+					Несуча стіна позначена на демонтаж — можливо лише за проєктом підсилення й погодженням.
+				</p>
+			)}
 			<div className="flex gap-2">
 				<Button
 					size="sm"

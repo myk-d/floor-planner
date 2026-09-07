@@ -38,7 +38,16 @@ describe('normalizeScene migration', () => {
 		);
 		expect(s.walls[0].status).toBe('existing');
 		expect(s.walls[0].material).toBe('brick');
+		expect(s.walls[0].loadBearing).toBe(false);
 		expect(s.openings[0].status).toBe('existing');
+	});
+
+	it('keeps a wall loadBearing flag through normalization', () => {
+		const s = normalizeScene(
+			{ walls: [{ id: 'w', a: { x: 0, y: 0 }, b: { x: 100, y: 0 }, thickness: 10, material: 'brick', loadBearing: true }] },
+			'X',
+		);
+		expect(s.walls[0].loadBearing).toBe(true);
 	});
 
 	it('normalized empty scene is stable', () => {

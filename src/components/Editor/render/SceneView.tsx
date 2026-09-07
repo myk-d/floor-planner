@@ -202,7 +202,7 @@ export default function SceneView({
 								fillPatternScale={hatchImg ? { x: px(0.5), y: px(0.5) } : undefined}
 								opacity={demo === STATUS_STROKE.demolish ? 0.55 : 1}
 								stroke={isSel(w.id) ? theme.selection : demo ?? theme.wallStroke}
-								strokeWidth={px(isSel(w.id) || demo ? 2 : 1)}
+								strokeWidth={px(isSel(w.id) || demo ? 2 : w.loadBearing ? 2.2 : 1)}
 								dash={demo === STATUS_STROKE.demolish ? [px(6), px(4)] : undefined}
 								hitStrokeWidth={px(8)}
 								onMouseDown={hit('wall', w.id)}

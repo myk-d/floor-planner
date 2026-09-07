@@ -32,7 +32,8 @@ geometry client-side.
 - `scene.ts` — all types + `emptyScene`/`normalizeScene`/`makeRoomRect`/`makeRoomL|U|T`. Geometry
   is in **centimetres**, world-space, Y-down. `Scene`: `walls, rooms, surfaces, openings,
   furniture, texts, dims, symbols, routes, zones, styleboards, compass, settings`. `Wall`/`Opening`
-  carry `status` (`existing|demolish|new`); `Route` carries `gauge`/`circuit`; `Zone.kind` covers
+  carry `status` (`existing|demolish|new`); `Wall` also has `loadBearing`; `Room` has
+  `ceilingHeight`; `Route` carries `gauge`/`circuit`; `Zone.kind` covers
   heat-cable/heat-water/screed/plaster/insulation/waterproofing. `settings`: `renderMode`
   (`line|blueprint|color`), `layers`, `showOverallChains`, `showDemolition`, `colorByCircuit`,
   `wallHeight`. **`normalizeScene` is the migration layer** — it back-fills every field and
