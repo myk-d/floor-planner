@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { sceneBBox } from '../domain/geometry';
+import { bboxOf, rotatePoint, sceneBBox } from '../domain/geometry';
+import type { BBox } from '../domain/geometry';
 import { detectRooms, reconcileRooms } from '../domain/rooms';
 import { moveNode, splitWall } from '../domain/walls';
 import {
@@ -156,6 +157,8 @@ interface PlannerState {
 	setView: (view: Partial<View>) => void;
 	zoomAt: (factor: number, screen: Vec) => void;
 	fitToScene: (stageW: number, stageH: number) => void;
+	/** Вписати вибране в екран; якщо нічого не вибрано — усю сцену. */
+	frameSelection: (stageW: number, stageH: number) => void;
 	toggleGrid: () => void;
 	toggleSnap: () => void;
 	setStageSize: (size: { width: number; height: number }) => void;
@@ -308,6 +311,81 @@ function moveElementBy(d: Scene, sel: Selection, dx: number, dy: number) {
 	}
 }
 
+/** Порахувати `view`, що вписує bbox у сцену з відступом. `null`, якщо bbox порожній. */
+export function fitViewToBBox(bbox: BBox, stageW: number, stageH: number, pad = 140, maxScale = 4): View | null {
+	const w = bbox.maxX - bbox.minX;
+	const h = bbox.maxY - bbox.minY;
+	if (!isFinite(w) || !isFinite(h) || w < 0 || h < 0) return null;
+	const scale = Math.min((stageW - pad * 2) / (w || 1), (stageH - pad * 2) / (h || 1));
+	const clamped = Math.min(maxScale, Math.max(0.03, scale));
+	return {
+		scale: clamped,
+		offsetX: (stageW - w * clamped) / 2 - bbox.minX * clamped,
+		offsetY: (stageH - h * clamped) / 2 - bbox.minY * clamped,
+	};
+}
+
+/** Світові точки габариту одного вибраного елемента (для «вписати вибране»). */
+export function selectionPoints(scene: Scene, sel: Selection): Vec[] {
+	switch (sel.type) {
+		case 'wall': {
+			const w = scene.walls.find((x) => x.id === sel.id);
+			return w ? [w.a, w.b] : [];
+		}
+		case 'room':
+			return scene.rooms.find((x) => x.id === sel.id)?.points ?? [];
+		case 'surface':
+			return scene.surfaces.find((x) => x.id === sel.id)?.points ?? [];
+		case 'zone':
+			return scene.zones.find((x) => x.id === sel.id)?.points ?? [];
+		case 'route':
+			return scene.routes.find((x) => x.id === sel.id)?.points ?? [];
+		case 'dim': {
+			const d = scene.dims.find((x) => x.id === sel.id);
+			return d ? [d.a, d.b] : [];
+		}
+		case 'furniture': {
+			const f = scene.furniture.find((x) => x.id === sel.id);
+			if (!f) return [];
+			const c = { x: f.x, y: f.y };
+			return [
+				{ x: f.x - f.w / 2, y: f.y - f.d / 2 },
+				{ x: f.x + f.w / 2, y: f.y - f.d / 2 },
+				{ x: f.x + f.w / 2, y: f.y + f.d / 2 },
+				{ x: f.x - f.w / 2, y: f.y + f.d / 2 },
+			].map((p) => rotatePoint(p, c, f.rotation));
+		}
+		case 'text': {
+			const t = scene.texts.find((x) => x.id === sel.id);
+			return t ? [{ x: t.x, y: t.y }] : [];
+		}
+		case 'symbol': {
+			const s = scene.symbols.find((x) => x.id === sel.id);
+			if (!s) return [];
+			return [
+				{ x: s.x - 20, y: s.y - 20 },
+				{ x: s.x + 20, y: s.y + 20 },
+			];
+		}
+		case 'opening': {
+			const o = scene.openings.find((x) => x.id === sel.id);
+			const wall = o && scene.walls.find((w) => w.id === o.wallId);
+			if (!o || !wall) return [];
+			const wl = Math.hypot(wall.b.x - wall.a.x, wall.b.y - wall.a.y) || 1;
+			const t = o.offset / wl;
+			const c = { x: wall.a.x + (wall.b.x - wall.a.x) * t, y: wall.a.y + (wall.b.y - wall.a.y) * t };
+			return [
+				{ x: c.x - o.width / 2, y: c.y - o.width / 2 },
+				{ x: c.x + o.width / 2, y: c.y + o.width / 2 },
+			];
+		}
+		case 'compass':
+			return scene.compass ? [{ x: scene.compass.x - 40, y: scene.compass.y - 40 }, { x: scene.compass.x + 40, y: scene.compass.y + 40 }] : [];
+		default:
+			return [];
+	}
+}
+
 export const usePlannerStore = create<PlannerState>((set, get) => ({
 	projectId: null,
 	scene: normalizeScene(undefined, 'Без назви'),
@@ -377,24 +455,18 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	},
 
 	fitToScene: (stageW, stageH) => {
-		const { scene } = get();
-		const bbox = sceneBBox(scene);
-		const w = bbox.maxX - bbox.minX;
-		const h = bbox.maxY - bbox.minY;
-		if (!isFinite(w) || !isFinite(h) || w <= 0 || h <= 0) {
-			set({ view: { scale: 0.4, offsetX: stageW / 2, offsetY: stageH / 2 } });
-			return;
-		}
-		const pad = 140;
-		const scale = Math.min((stageW - pad * 2) / w, (stageH - pad * 2) / h);
-		const clamped = Math.min(4, Math.max(0.03, scale));
-		set({
-			view: {
-				scale: clamped,
-				offsetX: (stageW - w * clamped) / 2 - bbox.minX * clamped,
-				offsetY: (stageH - h * clamped) / 2 - bbox.minY * clamped,
-			},
-		});
+		const next = fitViewToBBox(sceneBBox(get().scene), stageW, stageH);
+		if (next) set({ view: next });
+		else set({ view: { scale: 0.4, offsetX: stageW / 2, offsetY: stageH / 2 } });
+	},
+
+	frameSelection: (stageW, stageH) => {
+		const { scene, selected } = get();
+		if (selected.length === 0) return get().fitToScene(stageW, stageH);
+		const pts = selected.flatMap((sel) => selectionPoints(scene, sel));
+		const next = pts.length ? fitViewToBBox(bboxOf(pts), stageW, stageH, 160, 2.5) : null;
+		if (next) set({ view: next });
+		else get().fitToScene(stageW, stageH);
 	},
 
 	toggleGrid: () => set({ showGrid: !get().showGrid }),

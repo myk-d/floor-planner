@@ -156,6 +156,12 @@ export default function Editor() {
 				}
 				return;
 			}
+			if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
+				e.preventDefault();
+				const { stageSize, frameSelection } = usePlannerStore.getState();
+				frameSelection(stageSize.width, stageSize.height);
+				return;
+			}
 			const tool = SHORTCUTS[e.key.toLowerCase()];
 			if (tool && !e.ctrlKey && !e.metaKey) setTool(tool);
 		};
