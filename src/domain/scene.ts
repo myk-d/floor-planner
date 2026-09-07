@@ -205,6 +205,8 @@ export interface SceneSettings {
 	showOverallChains: boolean;
 	/** режим «до/після ремонту» — підсвічувати demolish/new */
 	showDemolition: boolean;
+	/** фаза плану: both — усе з підсвіткою; before — до перепланування; after — після */
+	planPhase?: 'both' | 'before' | 'after';
 	/** фарбувати інженерні символи й лінії за групою (circuit) */
 	colorByCircuit: boolean;
 	layers: Layers;
@@ -250,6 +252,7 @@ export const DEFAULT_SETTINGS: SceneSettings = {
 	renderMode: 'color',
 	showOverallChains: false,
 	showDemolition: false,
+	planPhase: 'both',
 	colorByCircuit: false,
 	layers: DEFAULT_LAYERS,
 	title: 'Без назви',

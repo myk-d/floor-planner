@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { reconfigSummary } from './reconfig';
+import { hiddenInPhase, reconfigSummary } from './reconfig';
 import { emptyScene, newId } from './scene';
+
+describe('hiddenInPhase', () => {
+	it('before hides new, after hides demolish, both hides nothing', () => {
+		expect(hiddenInPhase('before', 'new')).toBe(true);
+		expect(hiddenInPhase('before', 'demolish')).toBe(false);
+		expect(hiddenInPhase('after', 'demolish')).toBe(true);
+		expect(hiddenInPhase('after', 'new')).toBe(false);
+		expect(hiddenInPhase('both', 'new')).toBe(false);
+		expect(hiddenInPhase('before', undefined)).toBe(false);
+	});
+});
 
 describe('reconfigSummary', () => {
 	it('no changes → any:false', () => {

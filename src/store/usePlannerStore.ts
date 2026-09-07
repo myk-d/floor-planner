@@ -209,6 +209,7 @@ interface PlannerState {
 	cycleStatus: (sel: Selection) => void;
 	setRouteGauge: (id: string, gauge: string) => void;
 	toggleDemolition: () => void;
+	setPlanPhase: (phase: 'both' | 'before' | 'after') => void;
 	toggleColorByCircuit: () => void;
 	setWallHeight: (cm: number) => void;
 	setFinishRate: (key: string, rate: number) => void;
@@ -868,6 +869,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	},
 
 	toggleDemolition: () => get().commit((d) => void (d.settings.showDemolition = !d.settings.showDemolition)),
+	setPlanPhase: (phase) => get().commit((d) => void (d.settings.planPhase = phase)),
 	toggleColorByCircuit: () => get().commit((d) => void (d.settings.colorByCircuit = !d.settings.colorByCircuit)),
 	setWallHeight: (cm) => get().commit((d) => void (d.settings.wallHeight = cm)),
 	setFinishRate: (key, rate) =>

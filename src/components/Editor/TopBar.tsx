@@ -37,6 +37,7 @@ export default function TopBar({ onExport, onSave, saving }: { onExport: () => v
 		view3d,
 		toggle3d,
 		setHelpOpen,
+		setPlanPhase,
 	} = usePlannerStore();
 	const [title, setLocalTitle] = useState(scene.settings.title);
 
@@ -132,7 +133,7 @@ export default function TopBar({ onExport, onSave, saving }: { onExport: () => v
 				<ScanSearch className="h-4 w-4" />
 			</button>
 			<button
-				title="Режим «до/після ремонту»"
+				title="Підсвітити демонтаж / нові (у фазі «Все»)"
 				onClick={toggleDemolition}
 				className={cn(
 					'flex h-7 w-8 items-center justify-center rounded-md border border-panel-border',
@@ -141,6 +142,19 @@ export default function TopBar({ onExport, onSave, saving }: { onExport: () => v
 			>
 				<Hammer className="h-4 w-4" />
 			</button>
+			<select
+				value={scene.settings.planPhase ?? 'both'}
+				onChange={(e) => setPlanPhase(e.target.value as 'both' | 'before' | 'after')}
+				className={cn(
+					'h-7 rounded-md border border-panel-border bg-panel px-1.5 text-xs',
+					(scene.settings.planPhase ?? 'both') !== 'both' && 'bg-brand-bg text-brand',
+				)}
+				title="Фаза плану"
+			>
+				<option value="both">Фаза: все</option>
+				<option value="before">Фаза: до</option>
+				<option value="after">Фаза: після</option>
+			</select>
 			<button
 				title="Фарбувати інженерні лінії за групою"
 				onClick={toggleColorByCircuit}

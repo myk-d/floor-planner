@@ -6,6 +6,7 @@ import { distance, normalize, segmentNormal, sub } from '../../../domain/geometr
 import type { LayerName, Opening, Scene, Vec, Wall } from '../../../domain/scene';
 import { circuitColorMap } from '../../../domain/circuits';
 import { wallHeightAt } from '../../../domain/elevation';
+import { hiddenInPhase } from '../../../domain/reconfig';
 import { isCeilingSymbol, symbolMountHeight, zoneStyle } from '../../../constants/engineering';
 import type { Selection, SelectableType } from '../../../store/usePlannerStore';
 import { layerOf, toWorld, type View } from '../../../store/usePlannerStore';
@@ -125,6 +126,13 @@ export default function SceneView({
 	const tl = toWorld({ x: 0, y: 0 }, view);
 	const br = toWorld({ x: stageWidth, y: stageHeight }, view);
 	const circuitColors = scene.settings.colorByCircuit ? circuitColorMap(scene) : null;
+	const phase = scene.settings.planPhase ?? 'both';
+	const hidden = (status?: string): boolean => hiddenInPhase(phase, status);
+	// у фазах «до/після» розміри й підписи рахуємо без прихованих стін/отворів
+	const dimScene =
+		phase === 'both'
+			? scene
+			: { ...scene, walls: scene.walls.filter((w) => !hidden(w.status)), openings: scene.openings.filter((o) => !hidden(o.status)) };
 
 	return (
 		<Layer>
@@ -183,12 +191,13 @@ export default function SceneView({
 				{/* Walls */}
 				{layerVisible('construction') &&
 					scene.walls.map((w) => {
+						if (hidden(w.status)) return null;
 						const len = distance(w.a, w.b);
 						if (len < 0.5) return null;
 						const angle = (Math.atan2(w.b.y - w.a.y, w.b.x - w.a.x) * 180) / Math.PI;
 						const ws = wallStyle(theme, w.material);
 						const hatchImg = ws.solid ? null : wallHatch(w.material, ws.base, ws.line);
-						const demo = scene.settings.showDemolition ? STATUS_STROKE[w.status ?? 'existing'] : null;
+						const demo = phase === 'both' && scene.settings.showDemolition ? STATUS_STROKE[w.status ?? 'existing'] : null;
 						return (
 							<Rect
 								key={w.id}
@@ -215,7 +224,7 @@ export default function SceneView({
 
 				{/* Wall joints */}
 				{layerVisible('construction') &&
-					scene.walls.map((w) => (
+					scene.walls.filter((w) => !hidden(w.status)).map((w) => (
 						<Fragment key={`j-${w.id}`}>
 							<Circle x={w.a.x} y={w.a.y} radius={w.thickness / 2} fill={theme.wall} listening={false} />
 							<Circle x={w.b.x} y={w.b.y} radius={w.thickness / 2} fill={theme.wall} listening={false} />
@@ -225,8 +234,9 @@ export default function SceneView({
 				{/* Openings */}
 				{layerVisible('openings') &&
 					scene.openings.map((o) => {
+						if (hidden(o.status)) return null;
 						const wall = scene.walls.find((w) => w.id === o.wallId);
-						if (!wall) return null;
+						if (!wall || hidden(wall.status)) return null;
 						return (
 							<OpeningShape
 								key={o.id}
@@ -357,10 +367,10 @@ export default function SceneView({
 				{/* Dimensions */}
 				{opt.showDimensions && layerVisible('dimensions') && (
 					<>
-						{wallDimensions(scene, units).map((d, i) => (
+						{wallDimensions(dimScene, units).map((d, i) => (
 							<DimensionMark key={`wd-${i}`} seg={d} theme={theme} scale={scale} />
 						))}
-						{manualDimensions(scene, units).map((d, i) => {
+						{manualDimensions(dimScene, units).map((d, i) => {
 							const dim = scene.dims[i];
 							return (
 								<Group key={`md-${i}`} onMouseDown={hit('dim', dim.id)}>
@@ -375,7 +385,7 @@ export default function SceneView({
 				{opt.showOverallChains &&
 					scene.settings.showOverallChains &&
 					layerVisible('dimensions') &&
-					overallChains(scene, units).flatMap((chain) =>
+					overallChains(dimScene, units).flatMap((chain) =>
 						[...chain.segments, chain.total].map((seg, i) => (
 							<DimensionMark key={`oc-${chain.side}-${i}`} seg={seg} theme={theme} scale={scale} />
 						)),
@@ -384,7 +394,7 @@ export default function SceneView({
 				{/* Room labels */}
 				{opt.showRoomLabels &&
 					layerVisible('labels') &&
-					roomLabels(scene).map((r, i) => (
+					roomLabels(dimScene).map((r, i) => (
 						<Group key={`rl-${i}`} x={r.at.x} y={r.at.y} listening={false}>
 							<Text text={r.name} fontSize={px(14)} fontStyle="bold" fill={theme.roomText} align="center" width={400} offsetX={200} offsetY={px(16)} />
 							<Text text={r.areaText} fontSize={px(12)} fill={theme.roomText} align="center" width={400} offsetX={200} offsetY={px(0)} />

@@ -4,6 +4,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { furnitureHeight, wallHeightAt } from '../../../domain/elevation';
+import { hiddenInPhase } from '../../../domain/reconfig';
 import { sceneBBox } from '../../../domain/geometry';
 import type { Opening, Scene, Wall } from '../../../domain/scene';
 import { floorHatch, floorTint, wallHatch, WALL_MATERIAL_COLOR } from '../render/hatch';
@@ -156,6 +157,7 @@ function Scene3DInner({ scene }: { scene: Scene }) {
 	const cx = ((bbox.minX + bbox.maxX) / 2 || 0) * S;
 	const cz = ((bbox.minY + bbox.maxY) / 2 || 0) * S;
 	const span = Math.max(bbox.maxX - bbox.minX, bbox.maxY - bbox.minY, 300) * S;
+	const phase = scene.settings.planPhase ?? 'both';
 
 	const controls = useRef<OrbitControlsImpl | null>(null);
 	const [view, setView] = useState<{ preset: ViewPreset; nonce: number }>({ preset: 'iso', nonce: 0 });
@@ -183,11 +185,11 @@ function Scene3DInner({ scene }: { scene: Scene }) {
 					<FloorPlane key={sf.id} points={sf.points} color={sf.color} tex={canvasTexture(floorHatch(sf.kind === 'none' ? 'parquet' : sf.kind, sf.color, 'rgba(0,0,0,0.14)'), 4)} />
 				))}
 
-				{scene.walls.map((w) => (
+				{scene.walls.filter((w) => !hiddenInPhase(phase, w.status)).map((w) => (
 					<WallMesh
 						key={w.id}
 						wall={w}
-						openings={scene.openings.filter((o) => o.wallId === w.id)}
+						openings={scene.openings.filter((o) => o.wallId === w.id && !hiddenInPhase(phase, o.status))}
 						height={wallHeightAt(scene, { x: (w.a.x + w.b.x) / 2, y: (w.a.y + w.b.y) / 2 })}
 					/>
 				))}

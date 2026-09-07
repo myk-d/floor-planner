@@ -1,6 +1,12 @@
 import { distance } from './geometry';
 import type { Scene } from './scene';
 
+export type PlanPhase = 'both' | 'before' | 'after';
+
+/** Чи ховати елемент з таким `status` у поточній фазі плану (before ховає нові, after — демонтаж). */
+export const hiddenInPhase = (phase: PlanPhase, status?: string): boolean =>
+	(phase === 'before' && status === 'new') || (phase === 'after' && status === 'demolish');
+
 export interface ReconfigSummary {
 	wallsDemolish: { count: number; lengthM: number };
 	wallsNew: { count: number; lengthM: number };
