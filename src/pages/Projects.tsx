@@ -24,8 +24,8 @@ export default function Projects() {
 
 	const onImport = async (file: File) => {
 		try {
-			const { name: n, scene } = fromProjectFile(await file.text());
-			const doc = await importFile(n, scene, user?.email ?? '');
+			const { name: n, scene, variants, activeVariantId } = fromProjectFile(await file.text());
+			const doc = await importFile(n, scene, user?.email ?? '', variants, activeVariantId);
 			if (doc) navigate(UrlConfig.editor(doc.id));
 		} catch (e) {
 			toast.error(e instanceof Error ? e.message : 'Не вдалося прочитати файл.');

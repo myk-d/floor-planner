@@ -26,4 +26,26 @@ describe('projectFile round-trip', () => {
 		expect(() => fromProjectFile(JSON.stringify({ format: 'other' }))).toThrow();
 		expect(() => fromProjectFile(JSON.stringify(emptyScene('E')))).toThrow();
 	});
+
+	it('round-trips planning variants (v2) and stays v1 for a single variant', () => {
+		const v1 = emptyScene('A');
+		v1.rooms.push(makeRoomRect(0, 0, 400, 300, 10, 'Було').room);
+		const v2 = emptyScene('A');
+		v2.rooms.push(makeRoomRect(0, 0, 500, 300, 10, 'Стало').room);
+		const variants = [
+			{ id: 'a', name: 'Варіант 1', scene: v1 },
+			{ id: 'b', name: 'Варіант 2', scene: v2 },
+		];
+		const json = toProjectFile('A', v2, variants, 'b');
+		expect(JSON.parse(json).version).toBe(2);
+		const parsed = fromProjectFile(json);
+		expect(parsed.variants?.map((v) => v.name)).toEqual(['Варіант 1', 'Варіант 2']);
+		expect(parsed.activeVariantId).toBe('b');
+		expect(parsed.scene.rooms[0].name).toBe('Стало'); // active
+
+		// a lone variant is written as plain v1
+		const solo = toProjectFile('A', v1, [variants[0]], 'a');
+		expect(JSON.parse(solo).version).toBe(1);
+		expect(fromProjectFile(solo).variants).toBeUndefined();
+	});
 });

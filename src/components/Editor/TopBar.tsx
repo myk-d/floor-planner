@@ -199,7 +199,8 @@ export default function TopBar({ onExport, onSave, saving }: { onExport: () => v
 				<button
 					title="Зберегти як .floorplan (файл)"
 					onClick={() => {
-						const json = toProjectFile(scene.settings.title, scene);
+						const st = usePlannerStore.getState();
+						const json = toProjectFile(scene.settings.title, scene, st.variantsForSave(), st.activeVariantId ?? undefined);
 						const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
 						const a = document.createElement('a');
 						a.href = url;

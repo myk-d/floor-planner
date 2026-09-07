@@ -67,7 +67,8 @@ geometry client-side.
   `elevation.ts` — `wallElevation(scene, wallId)` + `furnitureHeight(kind)` + `wallHeightAt(scene, p)`
   (per-room `Room.ceilingHeight` at a point, else global `settings.wallHeight`; used by elevations + 3D);
   `svgExport.ts` — `sceneToSVG` (vector, 1 unit = 1 cm); `projectFile.ts` —
-  `toProjectFile`/`fromProjectFile` (`.floorplan` JSON round-trip).
+  `toProjectFile`/`fromProjectFile` (`.floorplan` JSON round-trip; `version: 2` carries all
+  planning `variants` + `activeVariantId`, `version: 1` is a lone scene).
 
 ### Config / services / stores
 

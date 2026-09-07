@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { toast } from '../components/UI/toast';
 import { emptyScene, normalizeScene, type Scene } from '../domain/scene';
+import type { Variant } from '../domain/variants';
 import { dbProjects, type ProjectDoc } from '../services/projects.service';
 
 interface ProjectsState {
@@ -8,7 +9,13 @@ interface ProjectsState {
 	isLoading: boolean;
 	fetchAll: () => Promise<void>;
 	create: (name: string, createdByEmail: string) => Promise<ProjectDoc | null>;
-	importFile: (name: string, scene: Scene, createdByEmail: string) => Promise<ProjectDoc | null>;
+	importFile: (
+		name: string,
+		scene: Scene,
+		createdByEmail: string,
+		variants?: Variant[],
+		activeVariantId?: string,
+	) => Promise<ProjectDoc | null>;
 	rename: (id: string, name: string) => Promise<void>;
 	remove: (id: string) => Promise<void>;
 	duplicate: (id: string, createdByEmail: string) => Promise<void>;
@@ -50,10 +57,17 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 		}
 	},
 
-	importFile: async (name, scene, createdByEmail) => {
+	importFile: async (name, scene, createdByEmail, variants, activeVariantId) => {
 		try {
 			const now = Date.now();
-			const doc = await dbProjects.create({ name, scene, createdAt: now, updatedAt: now, createdByEmail });
+			const doc = await dbProjects.create({
+				name,
+				scene,
+				createdAt: now,
+				updatedAt: now,
+				createdByEmail,
+				...(variants && variants.length > 1 ? { variants, activeVariantId } : {}),
+			});
 			set({ list: [doc, ...get().list] });
 			toast.success('Проєкт імпортовано.');
 			return doc;
