@@ -40,11 +40,13 @@ function demoScene(): Scene {
 		{ id: newId(), kind: 'toilet', x: 200, y: 470, rotation: 0, w: 40, d: 65, label: 'Унітаз', color: '#e7ebef' },
 		{ id: newId(), kind: 'bathtub', x: 120, y: 570, rotation: 0, w: 170, d: 75, label: 'Ванна', color: '#e7ebef' },
 	);
+	const lampLiving = { id: newId(), kind: 'light-ceiling', x: 260, y: 210, rotation: 0 };
+	const lampBed = { id: newId(), kind: 'light-ceiling', x: 700, y: 210, rotation: 0 };
 	s.symbols.push(
 		{ id: newId(), kind: 'socket-double', x: 60, y: 300, rotation: 0 },
-		{ id: newId(), kind: 'switch-1', x: 470, y: 60, rotation: 0 },
-		{ id: newId(), kind: 'light-ceiling', x: 260, y: 210, rotation: 0 },
-		{ id: newId(), kind: 'light-ceiling', x: 700, y: 210, rotation: 0 },
+		{ id: newId(), kind: 'switch-1', x: 470, y: 60, rotation: 0, links: [lampLiving.id] },
+		lampLiving,
+		lampBed,
 		{ id: newId(), kind: 'radiator-bimetal', x: 260, y: 12, rotation: 0 },
 		{ id: newId(), kind: 'water-cold', x: 40, y: 500, rotation: 0 },
 	);

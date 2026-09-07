@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { bboxOf, rotatePoint, sceneBBox } from '../domain/geometry';
 import type { BBox } from '../domain/geometry';
+import { toggleLink } from '../domain/lighting';
 import { detectRooms, reconcileRooms } from '../domain/rooms';
 import { moveNode, splitWall } from '../domain/walls';
 import {
@@ -210,6 +211,7 @@ interface PlannerState {
 	transformFurniture: (id: string, patch: Partial<Pick<Furniture, 'x' | 'y' | 'rotation' | 'w' | 'd'>>) => void;
 	cycleStatus: (sel: Selection) => void;
 	setRouteGauge: (id: string, gauge: string) => void;
+	toggleLightLink: (switchId: string, lightId: string) => void;
 	toggleDemolition: () => void;
 	setPlanPhase: (phase: 'both' | 'before' | 'after') => void;
 	toggleColorByCircuit: () => void;
@@ -653,7 +655,9 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 			d.openings = rm(d.openings, byType('opening')) as Opening[];
 			d.texts = rm(d.texts, byType('text')) as TextLabel[];
 			d.dims = rm(d.dims, byType('dim')) as DimLine[];
-			d.symbols = rm(d.symbols, byType('symbol')) as Scene['symbols'];
+			const symIds = byType('symbol');
+			d.symbols = rm(d.symbols, symIds) as Scene['symbols'];
+			if (symIds.length) for (const s of d.symbols) if (s.links) s.links = s.links.filter((id) => !symIds.includes(id));
 			d.routes = rm(d.routes, byType('route')) as Scene['routes'];
 			d.zones = rm(d.zones, byType('zone')) as Scene['zones'];
 			d.surfaces = rm(d.surfaces, byType('surface')) as Scene['surfaces'];
@@ -868,6 +872,13 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 		get().commit((d) => {
 			const r = d.routes.find((x) => x.id === id);
 			if (r) r.gauge = gauge || undefined;
+		});
+	},
+
+	toggleLightLink: (switchId, lightId) => {
+		get().commit((d) => {
+			const sw = d.symbols.find((s) => s.id === switchId);
+			if (sw) sw.links = toggleLink(sw.links, lightId);
 		});
 	},
 

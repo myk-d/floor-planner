@@ -17,6 +17,7 @@ const OPTION_LABELS: { key: keyof SceneViewOptions; label: string }[] = [
 	{ key: 'showFurnitureLabels', label: 'Підписи меблів' },
 	{ key: 'showEngineering', label: 'Інженерні елементи' },
 	{ key: 'showSymbolHeights', label: 'Висоти інженерних символів' },
+	{ key: 'showLightLinks', label: 'Звʼязки вимикач → світильник' },
 	{ key: 'showFinishes', label: 'Покриття / штриховки' },
 	{ key: 'pocheWalls', label: 'Чорні стіни (poché)' },
 	{ key: 'showGrid', label: 'Сітка' },

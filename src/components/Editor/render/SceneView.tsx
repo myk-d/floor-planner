@@ -5,6 +5,7 @@ import { manualDimensions, overallChains, roomLabels, wallDimensions, type DimSe
 import { distance, normalize, segmentNormal, sub } from '../../../domain/geometry';
 import type { LayerName, Opening, Scene, Vec, Wall } from '../../../domain/scene';
 import { circuitColorMap } from '../../../domain/circuits';
+import { lightingLinks } from '../../../domain/lighting';
 import { wallHeightAt } from '../../../domain/elevation';
 import { hiddenInPhase } from '../../../domain/reconfig';
 import { isCeilingSymbol, symbolMountHeight, zoneStyle } from '../../../constants/engineering';
@@ -33,6 +34,7 @@ export interface SceneViewOptions {
 	showTexts: boolean;
 	showEngineering: boolean;
 	showSymbolHeights: boolean;
+	showLightLinks: boolean;
 	showFinishes: boolean;
 	showCompass: boolean;
 	/** poché — суцільно-чорні стіни */
@@ -43,6 +45,7 @@ export const defaultOptions: SceneViewOptions = {
 	showGrid: true,
 	pocheWalls: false,
 	showSymbolHeights: true,
+	showLightLinks: true,
 	showDimensions: true,
 	showOverallChains: true,
 	showRoomLabels: true,
@@ -259,6 +262,33 @@ export default function SceneView({
 							}
 						/>
 					))}
+
+				{/* Switch → light connectors */}
+				{opt.showEngineering &&
+					opt.showLightLinks &&
+					layerVisible('engineering') &&
+					lightingLinks(scene).map(({ sw, light }) => {
+						const a = symbolPos(sw, scene);
+						const b = symbolPos(light, scene);
+						const dx = b.x - a.x;
+						const dy = b.y - a.y;
+						const len = Math.hypot(dx, dy) || 1;
+						const bow = Math.min(45, len * 0.14);
+						const cx = (a.x + b.x) / 2 - (dy / len) * bow;
+						const cy = (a.y + b.y) / 2 + (dx / len) * bow;
+						return (
+							<Line
+								key={`${sw.id}-${light.id}`}
+								points={[a.x, a.y, cx, cy, b.x, b.y]}
+								bezier
+								stroke="#f59e0b"
+								strokeWidth={px(1)}
+								dash={[px(2), px(3)]}
+								opacity={0.75}
+								listening={false}
+							/>
+						);
+					})}
 
 				{/* Symbols */}
 				{opt.showEngineering &&

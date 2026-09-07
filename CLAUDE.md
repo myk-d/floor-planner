@@ -34,7 +34,8 @@ geometry client-side.
   furniture, texts, dims, symbols, routes, zones, styleboards, compass, settings`. `Wall`/`Opening`
   carry `status` (`existing|demolish|new`); `Wall` also has `loadBearing`; `Room` has
   `ceilingHeight`/`wallFinish`/`ceilingFinish`/`skirting`/`cornice`; `SymbolItem` has
-  `mountHeight` (auto via `symbolMountHeight(kind)` in `constants/engineering.ts`);
+  `mountHeight` (auto via `symbolMountHeight(kind)` in `constants/engineering.ts`) + `links`
+  (switch → fixture ids, see `domain/lighting.ts`);
   `Route` carries `gauge`/`circuit`; `Zone.kind` covers
   heat-cable/heat-water/screed/plaster/insulation/waterproofing. `settings`: `renderMode`
   (`line|blueprint|color`), `layers`, `showOverallChains`, `showDemolition`, `colorByCircuit`,
@@ -54,6 +55,10 @@ geometry client-side.
 - `tiling.ts` — `tileCount(areaM2, spec)` (tiles + boxes for a surface, grout widens the cell,
   brick/diagonal patterns add waste) + `roomTiling` / `tilingSchedule` (rooms with tile floor or
   `wallFinish`); `settings.tile: TileSpec` (`DEFAULT_TILE`), edited in `PropertiesPanel` RoomProps.
+- `lighting.ts` — `SWITCH_KINDS`/`LIGHT_KINDS`, `isSwitch`/`isLight`, `lightingLinks(scene)`
+  (resolves `SymbolItem.links` — switch → fixture ids), `lightingIssues` (lights with no switch /
+  switches with no light), `toggleLink`. Store: `toggleLightLink`; SceneView draws a dashed amber
+  bezier per link (`options.showLightLinks`); PropertiesPanel SymbolProps edits links both ways.
 - `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `engspec.ts` — `engineeringSpec` (symbols
   by kind шт + routes by kind/gauge м); `reconfig.ts` — `reconfigSummary` (demolished/new walls
   count + пог.м, openings, from `status`) + `hiddenInPhase(phase, status)` driving

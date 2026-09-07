@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { distance, polygonAreaM2 } from '../../domain/geometry';
 import { CEILING_FINISHES, FLOOR_KINDS, roomSurfaceAreas, WALL_FINISHES } from '../../domain/finishes';
 import { DEFAULT_TILE, roomTiling, type TileEstimate, type TilePattern } from '../../domain/tiling';
+import { isLight, isSwitch } from '../../domain/lighting';
 import { routeStyle, ROUTE_STYLES, engSymbolLabel, symbolMountHeight } from '../../constants/engineering';
 import type {
 	DimLine,
@@ -629,7 +630,55 @@ function SymbolProps({ sym, patch }: { sym: SymbolItem; patch: Patch }) {
 					<LengthInput cm={sym.offset ?? 0} onCommit={(cm) => patch({ offset: cm })} />
 				</Field>
 			)}
+			{(isSwitch(sym.kind) || isLight(sym.kind)) && <LightLinks sym={sym} />}
 		</>
+	);
+}
+
+/** Керування звʼязками «вимикач → світильник» з панелі властивостей. */
+function LightLinks({ sym }: { sym: SymbolItem }) {
+	const scene = usePlannerStore((s) => s.scene);
+	const toggleLightLink = usePlannerStore((s) => s.toggleLightLink);
+	const select = usePlannerStore((s) => s.select);
+
+	if (isSwitch(sym.kind)) {
+		const lights = scene.symbols.filter((s) => isLight(s.kind));
+		const linked = new Set(sym.links ?? []);
+		return (
+			<div className="space-y-1 rounded-md bg-page-bg p-2 text-sm">
+				<div className="font-medium">Керує світильниками</div>
+				{lights.length === 0 && <div className="text-xs text-muted">У проєкті немає світильників.</div>}
+				{lights.map((l) => (
+					<label key={l.id} className="flex items-center gap-2 text-xs">
+						<input type="checkbox" checked={linked.has(l.id)} onChange={() => toggleLightLink(sym.id, l.id)} />
+						<span className="truncate">{engSymbolLabel(l.kind)}</span>
+						<button className="ml-auto text-muted hover:text-page-text" onClick={() => select({ id: l.id, type: 'symbol' }, false)}>
+							до нього
+						</button>
+					</label>
+				))}
+			</div>
+		);
+	}
+
+	// світильник — показати вимикачі, що ним керують
+	const drivers = scene.symbols.filter((s) => isSwitch(s.kind) && (s.links ?? []).includes(sym.id));
+	return (
+		<div className="space-y-1 rounded-md bg-page-bg p-2 text-sm">
+			<div className="font-medium">Вимикачі</div>
+			{drivers.length === 0 ? (
+				<div className="text-xs text-amber-700">Не привʼязаний до жодного вимикача.</div>
+			) : (
+				drivers.map((d) => (
+					<div key={d.id} className="flex items-center gap-2 text-xs">
+						<span className="truncate">{engSymbolLabel(d.kind)}</span>
+						<button className="ml-auto text-muted hover:text-danger" onClick={() => toggleLightLink(d.id, sym.id)}>
+							відвʼязати
+						</button>
+					</div>
+				))
+			)}
+		</div>
 	);
 }
 

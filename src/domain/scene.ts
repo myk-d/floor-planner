@@ -140,6 +140,8 @@ export interface SymbolItem {
 	circuit?: string;
 	/** висота монтажу від підлоги, см; якщо не задано — авто за типом */
 	mountHeight?: number;
+	/** для вимикачів/димерів — id світильників, якими керує */
+	links?: string[];
 }
 
 export type RouteKind = 'wire' | 'pipe-cold' | 'pipe-hot' | 'pipe-sewer' | 'heat-supply' | 'heat-return';
