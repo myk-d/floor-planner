@@ -95,6 +95,8 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 			const doc = await dbProjects.create({
 				name,
 				scene: normalizeScene(src.scene, name),
+				variants: src.variants?.map((v) => ({ ...v, scene: normalizeScene(v.scene, v.name) })),
+				activeVariantId: src.activeVariantId,
 				createdAt: now,
 				updatedAt: now,
 				createdByEmail,

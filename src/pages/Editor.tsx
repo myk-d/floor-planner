@@ -71,10 +71,14 @@ export default function Editor() {
 		if (!current.dirty) return;
 		setSaving(true);
 		try {
+			const variants = current.variantsForSave();
+			const active = variants.find((v) => v.id === current.activeVariantId) ?? variants[0];
 			await dbProjects.update({
 				id: projectId,
-				name: current.scene.settings.title,
-				scene: current.scene,
+				name: (active?.scene ?? current.scene).settings.title,
+				scene: active?.scene ?? current.scene,
+				variants,
+				activeVariantId: current.activeVariantId ?? undefined,
 				updatedAt: Date.now(),
 			});
 			markSaved();

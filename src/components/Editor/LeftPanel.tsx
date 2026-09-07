@@ -276,6 +276,7 @@ function ObjectsTab() {
 	const layers = scene.settings.layers;
 	return (
 		<div className="p-2">
+			<VariantsSection />
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Шари</p>
 			<div className="mb-3 space-y-0.5">
 				{(Object.keys(LAYER_LABELS) as LayerName[]).map((l) => (
@@ -415,6 +416,54 @@ function FinishSummary() {
 				<div className="flex justify-between border-t border-panel-border px-1 pt-1 text-sm font-semibold">
 					<span>Разом оздоблення</span>
 					<span>{total.toLocaleString('uk')} грн</span>
+				</div>
+			</div>
+		</>
+	);
+}
+
+function VariantsSection() {
+	const variants = usePlannerStore((s) => s.variants);
+	const activeId = usePlannerStore((s) => s.activeVariantId);
+	const { switchVariant, addVariant, renameVariant, deleteVariant } = usePlannerStore();
+	if (variants.length === 0) return null;
+	const active = variants.find((v) => v.id === activeId);
+	return (
+		<>
+			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Варіанти планування</p>
+			<div className="mb-3 space-y-1.5">
+				<select
+					value={activeId ?? ''}
+					onChange={(e) => switchVariant(e.target.value)}
+					className="w-full rounded-md border border-panel-border bg-panel px-2 py-1.5 text-sm"
+				>
+					{variants.map((v) => (
+						<option key={v.id} value={v.id}>
+							{v.name}
+						</option>
+					))}
+				</select>
+				{active && (
+					<input
+						key={active.id}
+						defaultValue={active.name}
+						onBlur={(e) => renameVariant(active.id, e.target.value)}
+						onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+						className="w-full rounded-md border border-panel-border bg-page-bg px-2 py-1 text-xs"
+						placeholder="Назва варіанта"
+					/>
+				)}
+				<div className="flex gap-1.5">
+					<button onClick={addVariant} className="flex-1 rounded-md border border-panel-border px-2 py-1 text-xs hover:bg-page-bg">
+						＋ Варіант (копія)
+					</button>
+					<button
+						onClick={() => active && deleteVariant(active.id)}
+						disabled={variants.length < 2}
+						className="rounded-md border border-panel-border px-2 py-1 text-xs text-danger hover:bg-page-bg disabled:opacity-40"
+					>
+						Видалити
+					</button>
 				</div>
 			</div>
 		</>

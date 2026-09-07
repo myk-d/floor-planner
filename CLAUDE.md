@@ -74,14 +74,23 @@ geometry client-side.
 - `src/config/` — `dotenv.config.ts`, `firebase.config.ts`, `firebase.factory.ts`
   (`FirebaseFactory<T>` generic CRUD; sanitizes `undefined` → `null`).
 - `src/services/projects.service.ts` — `dbProjects` only. Projects are a shared workspace.
+  `ProjectDoc` carries `scene` (the active variant, mirrored for legacy readers/export) plus
+  optional `variants: ProjectVariant[]` / `activeVariantId`.
 - `src/store/useAuthStore.ts` — Google popup + email allowlist gate (signs out non-allowed).
-- `src/store/useProjectsStore.ts` — project list CRUD.
+- `src/store/useProjectsStore.ts` — project list CRUD (`duplicate` copies all variants).
+- `domain/variants.ts` — `readVariants(doc)` (single-plan doc → one «Варіант 1», normalizes each
+  scene, resolves a stale `activeVariantId`), `nextVariantName`, `duplicateVariant`,
+  `removeVariant` (keeps ≥1).
 - `src/store/usePlannerStore.ts` — the editor. `selected: Selection[]` (multi-select),
   `commit`-based undo/redo, `beginDrag`/`dragElementTo`/`endDrag` for smooth grouped drags,
   clipboard (`copySelection`/`paste`), `align/nudge/move Selected`, wall-node ops
   (`moveWallNode`, `splitWallAt`), `autoDetectRooms`, `addSymbol/addRoute/addHeatZone/addCompass`,
   `setRoomFloor/setWallMaterial/setWallThickness`. `layerOf(type)` maps element → layer.
-  `toScreen`/`toWorld` helpers here.
+  `toScreen`/`toWorld` helpers here. Planning variants: `variants`/`activeVariantId`, `scene` is
+  the live copy of the active one; `addVariant` (copy) / `switchVariant` / `renameVariant` /
+  `deleteVariant` (each syncs `scene` back into its slot and resets undo history);
+  `variantsForSave()` merges the live `scene` for `Editor.tsx` persistence. UI: «Варіанти
+  планування» block atop the Об'єкти panel.
 
 ### Rendering (`src/components/Editor/render/`)
 

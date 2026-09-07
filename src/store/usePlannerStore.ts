@@ -3,6 +3,7 @@ import { bboxOf, rotatePoint, sceneBBox } from '../domain/geometry';
 import type { BBox } from '../domain/geometry';
 import { toggleLink } from '../domain/lighting';
 import { detectRooms, reconcileRooms } from '../domain/rooms';
+import { nextVariantName, readVariants, removeVariant, type Variant } from '../domain/variants';
 import { moveNode, splitWall } from '../domain/walls';
 import {
 	DEFAULT_FLOOR,
@@ -151,9 +152,18 @@ interface PlannerState {
 	view3d: boolean;
 	/** відкрита довідка гарячих клавіш */
 	helpOpen: boolean;
+	/** варіанти планування; `scene` — робоча копія активного */
+	variants: Variant[];
+	activeVariantId: string | null;
 
 	loadProject: (doc: ProjectDoc) => void;
 	markSaved: () => void;
+	/** усі варіанти з підмішаною поточною `scene` в активний — для збереження */
+	variantsForSave: () => Variant[];
+	addVariant: () => void;
+	switchVariant: (id: string) => void;
+	renameVariant: (id: string, name: string) => void;
+	deleteVariant: (id: string) => void;
 
 	setTool: (tool: Tool, pendingKind?: string | null) => void;
 	select: (sel: Selection | null, additive?: boolean) => void;
@@ -416,11 +426,17 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	elevationWallId: null,
 	view3d: false,
 	helpOpen: false,
+	variants: [],
+	activeVariantId: null,
 
-	loadProject: (doc) =>
+	loadProject: (doc) => {
+		const { variants, activeId } = readVariants(doc);
+		const active = variants.find((v) => v.id === activeId)!;
 		set({
 			projectId: doc.id,
-			scene: normalizeScene(doc.scene, doc.name),
+			variants,
+			activeVariantId: activeId,
+			scene: active.scene,
 			selected: [],
 			tool: 'select',
 			pendingKind: null,
@@ -431,9 +447,73 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 			measureDraft: null,
 			dragSnapshot: null,
 			elevationWallId: null,
-		}),
+		});
+	},
 
 	markSaved: () => set({ dirty: false }),
+
+	variantsForSave: () => {
+		const { variants, activeVariantId, scene } = get();
+		if (variants.length === 0) return [];
+		return variants.map((v) => (v.id === activeVariantId ? { ...v, scene } : v));
+	},
+
+	addVariant: () => {
+		const { variants, activeVariantId, scene } = get();
+		const synced = variants.map((v) => (v.id === activeVariantId ? { ...v, scene } : v));
+		const id = newId();
+		const name = nextVariantName(synced.map((v) => v.name));
+		const copy = normalizeScene(clone(scene), scene.settings.title);
+		set({
+			variants: [...synced, { id, name, scene: copy }],
+			activeVariantId: id,
+			scene: copy,
+			selected: [],
+			past: [],
+			future: [],
+			dirty: true,
+		});
+	},
+
+	switchVariant: (id) => {
+		const { variants, activeVariantId, scene } = get();
+		if (id === activeVariantId) return;
+		const target = variants.find((v) => v.id === id);
+		if (!target) return;
+		const synced = variants.map((v) => (v.id === activeVariantId ? { ...v, scene } : v));
+		set({
+			variants: synced,
+			activeVariantId: id,
+			scene: target.scene,
+			selected: [],
+			past: [],
+			future: [],
+			dirty: true,
+		});
+	},
+
+	renameVariant: (id, name) => {
+		const clean = name.trim();
+		if (!clean) return;
+		set({ variants: get().variants.map((v) => (v.id === id ? { ...v, name: clean } : v)), dirty: true });
+	},
+
+	deleteVariant: (id) => {
+		const { variants, activeVariantId, scene } = get();
+		const synced = variants.map((v) => (v.id === activeVariantId ? { ...v, scene } : v));
+		const next = removeVariant({ variants: synced, activeId: activeVariantId ?? synced[0]?.id }, id);
+		if (next.variants.length === synced.length) return; // нічого не видалили
+		const active = next.variants.find((v) => v.id === next.activeId)!;
+		set({
+			variants: next.variants,
+			activeVariantId: next.activeId,
+			scene: active.scene,
+			selected: [],
+			past: [],
+			future: [],
+			dirty: true,
+		});
+	},
 
 	setTool: (tool, pendingKind = null) =>
 		set({ tool, pendingKind, wallDraft: null, measureDraft: null, selected: tool === 'select' ? get().selected : [] }),
