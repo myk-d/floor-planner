@@ -59,6 +59,7 @@ function demoScene(): Scene {
 function Preview() {
 	const scene = demoScene();
 	const [mode, setMode] = useState<RenderMode>('color');
+	const [poche, setPoche] = useState(false);
 	const [png, setPng] = useState<string | null>(null);
 	const view = { scale: 1.0, offsetX: 160, offsetY: 200 };
 
@@ -96,10 +97,13 @@ function Preview() {
 				<button id="export-line" onClick={() => doExport('line')} style={{ padding: '4px 10px' }}>
 					Експорт лінійний
 				</button>
+				<label id="poche" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+					<input type="checkbox" checked={poche} onChange={(e) => setPoche(e.target.checked)} /> poché
+				</label>
 			</div>
 			<div style={{ border: '1px solid #ccc', width: 1180, height: 680 }}>
 				<Stage width={1180} height={680}>
-					<SceneView scene={scene} view={view} theme={themeForMode(mode)} stageWidth={1180} stageHeight={680} options={defaultOptions} />
+					<SceneView scene={scene} view={view} theme={themeForMode(mode)} stageWidth={1180} stageHeight={680} options={{ ...defaultOptions, pocheWalls: poche }} />
 				</Stage>
 			</div>
 			{png && <img id="export-img" src={png} style={{ display: 'block', marginTop: 12, width: 980, border: '1px solid #000' }} />}

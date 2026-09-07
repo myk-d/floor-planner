@@ -14,38 +14,9 @@ import FurnitureShape from '../furniture/FurnitureShape';
 import CompassMark from './CompassMark';
 import RouteShape from './RouteShape';
 import SymbolShape from './SymbolShape';
-import { floorHatch, floorTint, wallHatch, WALL_MATERIAL_COLOR } from './hatch';
+import { floorHatch, wallHatch } from './hatch';
 import type { RenderTheme } from './theme';
-
-interface HatchStyle {
-	base: string;
-	line: string;
-	/** true — суцільна заливка `base`, без штриховки */
-	solid: boolean;
-}
-
-function wallStyle(theme: RenderTheme, material: import('../../../domain/scene').WallMaterial): HatchStyle {
-	// синє креслення — стіни завжди суцільно білі (схема)
-	if (theme.name === 'blueprint') return { base: theme.wall, line: theme.wall, solid: true };
-	const line = theme.name === 'color' ? 'rgba(0,0,0,0.32)' : 'rgba(0,0,0,0.5)';
-	const base = theme.name === 'color' ? WALL_MATERIAL_COLOR[material] : '#ffffff';
-	return { base, line, solid: material === 'block' };
-}
-
-/** #rrggbb → rgba(...,a); повертає вхід без змін, якщо не hex */
-function withAlpha(color: string, a: number): string {
-	const m = color.match(/^#?([0-9a-f]{6})$/i);
-	if (!m) return color;
-	const n = parseInt(m[1], 16);
-	return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
-}
-
-function floorStyle(theme: RenderTheme, kind: import('../../../domain/scene').FloorKind, color: string): HatchStyle {
-	if (theme.name === 'color') return { base: floorTint(kind, color), line: 'rgba(0,0,0,0.14)', solid: false };
-	if (theme.name === 'blueprint') return { base: 'rgba(255,255,255,0.05)', line: 'rgba(255,255,255,0.16)', solid: false };
-	// лінійний режим: лише легкий відтінок обраного кольору + тонка штриховка, щоб не перекривати меблі
-	return { base: withAlpha(floorTint(kind, color), 0.14), line: 'rgba(0,0,0,0.16)', solid: false };
-}
+import { floorStyle, wallStyle } from './wallStyle';
 
 const STATUS_STROKE: Record<import('../../../domain/scene').BuildStatus, string | null> = {
 	existing: null,
@@ -64,10 +35,13 @@ export interface SceneViewOptions {
 	showSymbolHeights: boolean;
 	showFinishes: boolean;
 	showCompass: boolean;
+	/** poché — суцільно-чорні стіни */
+	pocheWalls: boolean;
 }
 
 export const defaultOptions: SceneViewOptions = {
 	showGrid: true,
+	pocheWalls: false,
 	showSymbolHeights: true,
 	showDimensions: true,
 	showOverallChains: true,
@@ -195,7 +169,7 @@ export default function SceneView({
 						const len = distance(w.a, w.b);
 						if (len < 0.5) return null;
 						const angle = (Math.atan2(w.b.y - w.a.y, w.b.x - w.a.x) * 180) / Math.PI;
-						const ws = wallStyle(theme, w.material);
+						const ws = wallStyle(theme, w.material, opt.pocheWalls);
 						const hatchImg = ws.solid ? null : wallHatch(w.material, ws.base, ws.line);
 						const demo = phase === 'both' && scene.settings.showDemolition ? STATUS_STROKE[w.status ?? 'existing'] : null;
 						return (
