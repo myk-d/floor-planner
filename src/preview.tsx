@@ -72,6 +72,8 @@ function Preview() {
 			showFurnitureLegend: true,
 			showRoomTable: true,
 			showFinishSchedule: true,
+			showEngSpec: true,
+			showReconfig: true,
 			paper: 'A3',
 			orientation: 'auto',
 			scaleRatio: 50,

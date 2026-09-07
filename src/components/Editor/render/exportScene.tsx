@@ -5,7 +5,9 @@ import { createRoot } from 'react-dom/client';
 import { Group, Layer, Line, Rect, Stage, Text } from 'react-konva';
 import { totalAreaM2 } from '../../../domain/dimensions';
 import { sceneBBox } from '../../../domain/geometry';
+import { engineeringSpec } from '../../../domain/engspec';
 import { finishEstimate } from '../../../domain/finishes';
+import { reconfigSummary } from '../../../domain/reconfig';
 import { furnitureSchedule, roomSchedule } from '../../../domain/schedule';
 import type { RenderMode, Scene } from '../../../domain/scene';
 import { formatAreaM2, unitLabel } from '../../../domain/units';
@@ -24,6 +26,8 @@ export interface ExportOptions {
 	showFurnitureLegend: boolean;
 	showRoomTable: boolean;
 	showFinishSchedule: boolean;
+	showEngSpec: boolean;
+	showReconfig: boolean;
 	paper: PaperSize;
 	orientation: 'landscape' | 'portrait' | 'auto';
 	scaleRatio: ScaleRatio;
@@ -124,10 +128,21 @@ function ExportStage({
 	const furn = opts.showFurnitureLegend ? furnitureSchedule(scene) : [];
 	const rooms = opts.showRoomTable ? roomSchedule(scene) : { rows: [], totalM2: 0 };
 	const finish = opts.showFinishSchedule ? finishEstimate(scene) : { rows: [], total: 0 };
+	const eng = opts.showEngSpec ? engineeringSpec(scene) : { symbols: [], routes: [] };
+	const engRows = [...eng.symbols, ...eng.routes];
+	const rec = opts.showReconfig ? reconfigSummary(scene) : null;
+	const recRows: string[][] = [];
+	if (rec?.wallsDemolish.count) recRows.push(['Демонтаж стін', `${rec.wallsDemolish.count} шт`, `${rec.wallsDemolish.lengthM.toFixed(1)} пог.м`]);
+	if (rec?.wallsNew.count) recRows.push(['Нові перегородки', `${rec.wallsNew.count} шт`, `${rec.wallsNew.lengthM.toFixed(1)} пог.м`]);
+	if (rec?.openingsDemolish) recRows.push(['Закласти отворів', `${rec.openingsDemolish} шт`, '']);
+	if (rec?.openingsNew) recRows.push(['Нові отвори', `${rec.openingsNew} шт`, '']);
+
 	const tableH = (n: number) => (n > 0 ? 34 + (n + 1) * 18 + 14 : 0); // висота таблиці + відступ
 	const furnY = 16;
 	const roomsY = furnY + tableH(furn.length);
 	const finishY = roomsY + tableH(rooms.rows.length);
+	const engY = finishY + tableH(finish.rows.length);
+	const recY = engY + tableH(engRows.length);
 
 	const infoLines = [
 		`Дата: ${new Date().toLocaleDateString('uk-UA')}`,
@@ -199,6 +214,21 @@ function ExportStage({
 						]}
 						widths={[170, 55, 55]}
 					/>
+				)}
+
+				{opts.showEngSpec && engRows.length > 0 && (
+					<ScheduleTable
+						x={layout.width - 296}
+						y={engY}
+						title="Специфікація мереж"
+						theme={theme}
+						rows={engRows.map((r) => [r.label, '', `${r.unit === 'м' ? r.qty.toFixed(1) : r.qty} ${r.unit}`])}
+						widths={[210, 10, 60]}
+					/>
+				)}
+
+				{opts.showReconfig && recRows.length > 0 && (
+					<ScheduleTable x={layout.width - 296} y={recY} title="Перепланування" theme={theme} rows={recRows} widths={[150, 55, 75]} />
 				)}
 			</Layer>
 		</Stage>
