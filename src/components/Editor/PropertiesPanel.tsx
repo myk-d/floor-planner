@@ -215,17 +215,20 @@ const STATUS_OPTS = [
 
 function WallProps({ wall, patch, select }: { wall: Wall; patch: Patch; select: (s: Selection | null) => void }) {
 	const length = distance(wall.a, wall.b);
+	// «уточнення»: тягнемо кінець B уздовж осі стіни, прилеглі стіни й кути кімнат слідують
 	const setLength = (cm: number) => {
+		if (cm <= 0) return;
 		const dx = wall.b.x - wall.a.x;
 		const dy = wall.b.y - wall.a.y;
-		const cur = Math.hypot(dx, dy) || 1;
-		const k = cm / cur;
-		patch({ b: { x: Math.round(wall.a.x + dx * k), y: Math.round(wall.a.y + dy * k) } });
+		const k = cm / (Math.hypot(dx, dy) || 1);
+		const to = { x: Math.round(wall.a.x + dx * k), y: Math.round(wall.a.y + dy * k) };
+		usePlannerStore.getState().moveWallNode({ x: wall.b.x, y: wall.b.y }, to);
 	};
 	return (
 		<>
 			<Field label="Довжина">
 				<LengthInput cm={length} onCommit={setLength} />
+				<p className="mt-1 text-xs text-muted">Прилеглі стіни та кути кімнат тягнуться за кінцем.</p>
 			</Field>
 			<Field label="Товщина, см">
 				<div className="flex flex-wrap gap-1">
