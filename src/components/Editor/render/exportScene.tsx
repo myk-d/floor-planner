@@ -9,6 +9,7 @@ import { engineeringSpec } from '../../../domain/engspec';
 import { finishEstimate } from '../../../domain/finishes';
 import { reconfigSummary } from '../../../domain/reconfig';
 import { furnitureSchedule, roomSchedule } from '../../../domain/schedule';
+import { tilingSchedule } from '../../../domain/tiling';
 import type { RenderMode, Scene } from '../../../domain/scene';
 import { formatAreaM2, unitLabel } from '../../../domain/units';
 import SceneView, { type SceneViewOptions } from './SceneView';
@@ -28,6 +29,7 @@ export interface ExportOptions {
 	showFinishSchedule: boolean;
 	showEngSpec: boolean;
 	showReconfig: boolean;
+	showTiling: boolean;
 	paper: PaperSize;
 	orientation: 'landscape' | 'portrait' | 'auto';
 	scaleRatio: ScaleRatio;
@@ -137,12 +139,30 @@ function ExportStage({
 	if (rec?.openingsDemolish) recRows.push(['Закласти отворів', `${rec.openingsDemolish} шт`, '']);
 	if (rec?.openingsNew) recRows.push(['Нові отвори', `${rec.openingsNew} шт`, '']);
 
+	const tiling = opts.showTiling ? tilingSchedule(scene) : null;
+	const tileRows: string[][] = [];
+	if (tiling) {
+		for (const r of tiling.rooms) {
+			tileRows.push([
+				r.roomName,
+				'',
+				[r.floor && `підлога ${r.floor.withWaste}`, r.walls && `стіни ${r.walls.withWaste}`].filter(Boolean).join(' · ') + ' шт',
+			]);
+		}
+		if (tileRows.length) {
+			const s = scene.settings.tile!;
+			tileRows.unshift([`Плитка ${s.w}×${s.h} см, шов ${s.grout} мм`, '', '']);
+			tileRows.push(['Разом', '', `${tiling.floorTiles + tiling.wallTiles} шт${tiling.boxes ? ` · ${tiling.boxes} пач.` : ''}`]);
+		}
+	}
+
 	const tableH = (n: number) => (n > 0 ? 34 + (n + 1) * 18 + 14 : 0); // висота таблиці + відступ
 	const furnY = 16;
 	const roomsY = furnY + tableH(furn.length);
 	const finishY = roomsY + tableH(rooms.rows.length);
 	const engY = finishY + tableH(finish.rows.length);
 	const recY = engY + tableH(engRows.length);
+	const tileY = recY + tableH(recRows.length);
 
 	const infoLines = [
 		`Дата: ${new Date().toLocaleDateString('uk-UA')}`,
@@ -229,6 +249,10 @@ function ExportStage({
 
 				{opts.showReconfig && recRows.length > 0 && (
 					<ScheduleTable x={layout.width - 296} y={recY} title="Перепланування" theme={theme} rows={recRows} widths={[150, 55, 75]} />
+				)}
+
+				{opts.showTiling && tileRows.length > 0 && (
+					<ScheduleTable x={layout.width - 296} y={tileY} title="Розкладка плитки" theme={theme} rows={tileRows} widths={[150, 10, 120]} />
 				)}
 			</Layer>
 		</Stage>

@@ -45,14 +45,15 @@ export default function ExportModal({ open, onClose }: { open: boolean; onClose:
 	const [showFinishSchedule, setShowFinishSchedule] = useState(false);
 	const [showEngSpec, setShowEngSpec] = useState(false);
 	const [showReconfig, setShowReconfig] = useState(false);
+	const [showTiling, setShowTiling] = useState(false);
 	const [opts, setOpts] = useState<SceneViewOptions>({ ...defaultOptions, showGrid: false });
 	const [busy, setBusy] = useState(false);
 
 	const fileBase = (scene.settings.title || 'plan').replace(/[^\p{L}\p{N}_-]+/gu, '_');
 
 	const exportOpts = useMemo<ExportOptions>(
-		() => ({ theme, pixelRatio, options: opts, title: scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, showFinishSchedule, showEngSpec, showReconfig, paper, orientation, scaleRatio, dpi }),
-		[theme, pixelRatio, opts, scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, showFinishSchedule, showEngSpec, showReconfig, paper, orientation, scaleRatio, dpi],
+		() => ({ theme, pixelRatio, options: opts, title: scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, showFinishSchedule, showEngSpec, showReconfig, showTiling, paper, orientation, scaleRatio, dpi }),
+		[theme, pixelRatio, opts, scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, showFinishSchedule, showEngSpec, showReconfig, showTiling, paper, orientation, scaleRatio, dpi],
 	);
 	const fits = paper === 'fit' || exportFits(scene, exportOpts);
 
@@ -206,6 +207,10 @@ export default function ExportModal({ open, onClose }: { open: boolean; onClose:
 						<label className="flex items-center gap-2">
 							<input type="checkbox" checked={showReconfig} onChange={(e) => setShowReconfig(e.target.checked)} />
 							Перепланування
+						</label>
+						<label className="flex items-center gap-2">
+							<input type="checkbox" checked={showTiling} onChange={(e) => setShowTiling(e.target.checked)} />
+							Розкладка плитки
 						</label>
 					</div>
 				</div>

@@ -75,6 +75,7 @@ function Preview() {
 			showFinishSchedule: true,
 			showEngSpec: true,
 			showReconfig: true,
+			showTiling: true,
 			paper: 'A3',
 			orientation: 'auto',
 			scaleRatio: 50,

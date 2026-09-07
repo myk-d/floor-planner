@@ -4,6 +4,7 @@ import { CATALOG, CATALOG_CATEGORIES, type CatalogCategory } from '../../constan
 import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, type EngCategory } from '../../constants/engineering';
 import { circuitGroups } from '../../domain/circuits';
 import { finishEstimate } from '../../domain/finishes';
+import { tilingSchedule } from '../../domain/tiling';
 import { engineeringSpec } from '../../domain/engspec';
 import { reconfigSummary } from '../../domain/reconfig';
 import type { FloorKind, LayerName, WallMaterial } from '../../domain/scene';
@@ -306,6 +307,7 @@ function ObjectsTab() {
 			<ReconfigSummary />
 			<EngSummary />
 			<FinishSummary />
+			<TilingSummary />
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Елементи</p>
 			<div className="space-y-0.5">
 				{scene.rooms.map((r) => (
@@ -413,6 +415,37 @@ function FinishSummary() {
 				<div className="flex justify-between border-t border-panel-border px-1 pt-1 text-sm font-semibold">
 					<span>Разом оздоблення</span>
 					<span>{total.toLocaleString('uk')} грн</span>
+				</div>
+			</div>
+		</>
+	);
+}
+
+function TilingSummary() {
+	const scene = usePlannerStore((s) => s.scene);
+	const t = tilingSchedule(scene);
+	if (t.rooms.length === 0) return null;
+	const spec = scene.settings.tile!;
+	return (
+		<>
+			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Розкладка плитки</p>
+			<div className="mb-3 space-y-0.5">
+				<div className="px-1 text-[11px] text-muted">
+					{spec.w}×{spec.h} см · шов {spec.grout} мм
+				</div>
+				{t.rooms.map((r) => (
+					<div key={r.roomName} className="flex justify-between gap-2 px-1 text-xs">
+						<span className="truncate">{r.roomName}</span>
+						<span className="shrink-0 font-medium">
+							{[r.floor && `підлога ${r.floor.withWaste}`, r.walls && `стіни ${r.walls.withWaste}`].filter(Boolean).join(' · ')} шт
+						</span>
+					</div>
+				))}
+				<div className="flex justify-between border-t border-panel-border px-1 pt-1 text-sm font-semibold">
+					<span>Разом плитки</span>
+					<span>
+						{t.floorTiles + t.wallTiles} шт{t.boxes > 0 && ` · ${t.boxes} пач.`}
+					</span>
 				</div>
 			</div>
 		</>
