@@ -51,6 +51,8 @@ export interface Room {
 }
 
 export type OpeningType = 'door' | 'window' | 'opening';
+/** підтип дверей: розпашні / розсувні / подвійні */
+export type DoorKind = 'swing' | 'slide' | 'double';
 
 export interface Opening {
 	id: string;
@@ -60,8 +62,12 @@ export interface Opening {
 	/** ширина отвору, см */
 	width: number;
 	type: OpeningType;
-	/** для дверей — у який бік відкривається */
+	/** для дверей — у який бік відкривається (по нормалі стіни) */
 	flip: boolean;
+	/** для дверей — петлі біля дальнього кінця (дзеркалення вздовж стіни) */
+	hingeRight?: boolean;
+	/** для дверей — підтип, дефолт 'swing' */
+	doorKind?: DoorKind;
 	/** дефолт 'existing' */
 	status?: BuildStatus;
 	/** висота підвіконня / низу отвору, см (для розгорток і 3D) */
@@ -303,6 +309,8 @@ export function normalizeScene(raw: LegacyScene | undefined, title: string): Sce
 			width: o.width ?? 90,
 			type: o.type ?? 'door',
 			flip: o.flip ?? false,
+			hingeRight: o.hingeRight ?? false,
+			doorKind: o.doorKind ?? 'swing',
 			status: o.status ?? 'existing',
 			sill: o.sill,
 			head: o.head,

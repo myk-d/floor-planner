@@ -42,6 +42,22 @@ describe('normalizeScene migration', () => {
 		expect(s.openings[0].status).toBe('existing');
 	});
 
+	it('defaults doorKind swing and keeps an explicit one', () => {
+		const s = normalizeScene(
+			{
+				openings: [
+					{ id: 'a', wallId: 'w', offset: 50, width: 80, type: 'door', flip: false },
+					{ id: 'b', wallId: 'w', offset: 150, width: 140, type: 'door', flip: true, doorKind: 'double', hingeRight: true },
+				],
+			},
+			'X',
+		);
+		expect(s.openings[0].doorKind).toBe('swing');
+		expect(s.openings[0].hingeRight).toBe(false);
+		expect(s.openings[1].doorKind).toBe('double');
+		expect(s.openings[1].hingeRight).toBe(true);
+	});
+
 	it('keeps a wall loadBearing flag through normalization', () => {
 		const s = normalizeScene(
 			{ walls: [{ id: 'w', a: { x: 0, y: 0 }, b: { x: 100, y: 0 }, thickness: 10, material: 'brick', loadBearing: true }] },

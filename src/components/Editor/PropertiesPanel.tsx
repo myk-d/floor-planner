@@ -445,9 +445,25 @@ function OpeningProps({ opening, patch }: { opening: Opening; patch: Patch }) {
 				<LengthInput cm={opening.offset} onCommit={(cm) => patch({ offset: cm })} />
 			</Field>
 			{opening.type === 'door' && (
-				<Button size="sm" variant="outline" onClick={() => patch({ flip: !opening.flip })}>
-					Дзеркально
-				</Button>
+				<>
+					<Field label="Тип дверей">
+						<Select value={opening.doorKind ?? 'swing'} onChange={(e) => patch({ doorKind: e.target.value })}>
+							<option value="swing">Розпашні</option>
+							<option value="slide">Розсувні</option>
+							<option value="double">Подвійні</option>
+						</Select>
+					</Field>
+					<div className="flex gap-2">
+						<Button size="sm" variant="outline" className="flex-1" onClick={() => patch({ flip: !opening.flip })}>
+							Бік відчинення
+						</Button>
+						{(opening.doorKind ?? 'swing') === 'swing' && (
+							<Button size="sm" variant="outline" className="flex-1" onClick={() => patch({ hingeRight: !opening.hingeRight })}>
+								Петлі: {opening.hingeRight ? 'справа' : 'зліва'}
+							</Button>
+						)}
+					</div>
+				</>
 			)}
 			{opening.type !== 'opening' && (
 				<div className="grid grid-cols-2 gap-2">

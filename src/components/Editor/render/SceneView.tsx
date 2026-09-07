@@ -479,11 +479,27 @@ function OpeningShape({
 					<Line points={[hw, -t / 2, hw, t / 2]} stroke={strokeCol} strokeWidth={sw} dash={[4 / scale, 3 / scale]} />
 				</>
 			)}
-			{opening.type === 'door' && (
+			{opening.type === 'door' && (opening.doorKind ?? 'swing') === 'slide' && (
 				<Group scaleY={opening.flip ? -1 : 1}>
-					<Line points={[-hw, 0, -hw, opening.width]} stroke={strokeCol} strokeWidth={sw} />
-					<Arc x={-hw} y={0} innerRadius={opening.width} outerRadius={opening.width} angle={90} stroke={strokeCol} strokeWidth={sw} dash={[5 / scale, 4 / scale]} />
-					<Line points={[-hw, 0, hw, 0]} stroke={strokeCol} strokeWidth={sw} />
+					<Rect x={-hw} y={-t * 0.5} width={opening.width * 0.95} height={t * 0.34} fill={theme.opening} stroke={strokeCol} strokeWidth={sw} />
+					<Line points={[-hw, t / 2, hw, t / 2]} stroke={strokeCol} strokeWidth={sw} />
+				</Group>
+			)}
+			{opening.type === 'door' && (opening.doorKind ?? 'swing') === 'double' && (
+				<Group scaleY={opening.flip ? -1 : 1}>
+					<Line points={[-hw, 0, -hw, hw]} stroke={strokeCol} strokeWidth={sw} />
+					<Arc x={-hw} y={0} innerRadius={hw} outerRadius={hw} angle={90} stroke={strokeCol} strokeWidth={sw} dash={[5 / scale, 4 / scale]} />
+					<Line points={[hw, 0, hw, hw]} stroke={strokeCol} strokeWidth={sw} />
+					<Arc x={hw} y={0} innerRadius={hw} outerRadius={hw} rotation={90} angle={90} stroke={strokeCol} strokeWidth={sw} dash={[5 / scale, 4 / scale]} />
+				</Group>
+			)}
+			{opening.type === 'door' && (opening.doorKind ?? 'swing') === 'swing' && (
+				<Group scaleY={opening.flip ? -1 : 1}>
+					<Group scaleX={opening.hingeRight ? -1 : 1}>
+						<Line points={[-hw, 0, -hw, opening.width]} stroke={strokeCol} strokeWidth={sw} />
+						<Arc x={-hw} y={0} innerRadius={opening.width} outerRadius={opening.width} angle={90} stroke={strokeCol} strokeWidth={sw} dash={[5 / scale, 4 / scale]} />
+						<Line points={[-hw, 0, hw, 0]} stroke={strokeCol} strokeWidth={sw} />
+					</Group>
 				</Group>
 			)}
 			{selected && <Rect x={-hw} y={-t / 2 - sw * 3} width={opening.width} height={t + sw * 6} stroke={theme.selection} strokeWidth={sw * 1.5} dash={[4 / scale, 3 / scale]} />}
