@@ -205,6 +205,8 @@ export interface SceneSettings {
 	layers: Layers;
 	/** назва проєкту (дублюється в документі, зручно мати в сцені для експорту) */
 	title: string;
+	/** розцінки оздоблення, грн/м², ключ `${surface}:${material}` (напр. `floor:tile`) */
+	finishRates?: Record<string, number>;
 }
 
 export interface Scene {
@@ -246,6 +248,7 @@ export const DEFAULT_SETTINGS: SceneSettings = {
 	colorByCircuit: false,
 	layers: DEFAULT_LAYERS,
 	title: 'Без назви',
+	finishRates: {},
 };
 
 function cloneLayers(layers: Layers): Layers {

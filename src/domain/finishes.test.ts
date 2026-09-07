@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { finishSchedule, roomSurfaceAreas } from './finishes';
+import { DEFAULT_FINISH_RATES, finishEstimate, finishSchedule, roomSurfaceAreas } from './finishes';
 import { emptyScene, type Room } from './scene';
 
 function rectRoom(): Room {
@@ -62,6 +62,23 @@ describe('roomSurfaceAreas', () => {
 		expect(wallTile?.rooms.sort()).toEqual(['Кухня', 'Санвузол']);
 		expect(rows.find((x) => x.label.startsWith('Підлога: Плитка'))?.rooms).toEqual(['Кухня']);
 		expect(rows.some((x) => x.surface === 'ceiling')).toBe(false);
+	});
+
+	it('finishEstimate: cost = area × rate, custom rate overrides default', () => {
+		const s = emptyScene();
+		s.rooms.push({ ...rectRoom(), floor: { kind: 'tile', color: '#fff' } });
+		// default floor:tile rate
+		const d = finishEstimate(s);
+		const row = d.rows.find((r) => r.key === 'floor:tile')!;
+		expect(row.rate).toBe(DEFAULT_FINISH_RATES['floor:tile']);
+		expect(row.cost).toBe(Math.round(12 * DEFAULT_FINISH_RATES['floor:tile']));
+		expect(d.total).toBe(row.cost);
+
+		s.settings.finishRates = { 'floor:tile': 1000 };
+		const e = finishEstimate(s);
+		expect(e.rows[0].rate).toBe(1000);
+		expect(e.rows[0].cost).toBe(12000);
+		expect(e.total).toBe(12000);
 	});
 
 	it('uses the room ceilingHeight when set', () => {

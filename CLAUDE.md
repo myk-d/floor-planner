@@ -45,7 +45,9 @@ geometry client-side.
   minimal graph faces, drops the outer. `reconcileRooms` keeps names/floors by centroid.
 - `walls.ts` — `wallNodes`, `moveNode`, `splitWall`, `mergeCollinear`.
 - `finishes.ts` — `roomSurfaceAreas(scene, room)` (floor/ceiling/gross+net wall m², openings on
-  bordering walls subtracted) + `WALL_FINISHES`/`CEILING_FINISHES` (`Room.wallFinish`/`ceilingFinish`).
+  bordering walls subtracted); `finishSchedule` (rooms → per material m²); `finishEstimate`
+  (× `settings.finishRates` / `DEFAULT_FINISH_RATES` grn/m² → cost + total);
+  `WALL_FINISHES`/`CEILING_FINISHES`/`FLOOR_KINDS` (`Room.wallFinish`/`ceilingFinish`).
 - `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `circuits.ts` — `circuitGroups` /
   `circuitColorMap` (group engineering by `circuit`, assign colours);
   `elevation.ts` — `wallElevation(scene, wallId)` + `furnitureHeight(kind)` + `wallHeightAt(scene, p)`

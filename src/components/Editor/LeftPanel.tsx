@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { CATALOG, CATALOG_CATEGORIES, type CatalogCategory } from '../../constants/catalog';
 import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, type EngCategory } from '../../constants/engineering';
 import { circuitGroups } from '../../domain/circuits';
-import { finishSchedule } from '../../domain/finishes';
+import { finishEstimate } from '../../domain/finishes';
 import type { FloorKind, LayerName, WallMaterial } from '../../domain/scene';
 import { cn } from '../../utils/cn';
 import { toWorld, usePlannerStore } from '../../store/usePlannerStore';
@@ -321,21 +321,40 @@ function ObjectsTab() {
 
 function FinishSummary() {
 	const scene = usePlannerStore((s) => s.scene);
-	const rows = finishSchedule(scene);
+	const setFinishRate = usePlannerStore((s) => s.setFinishRate);
+	const { rows, total } = finishEstimate(scene);
 	if (rows.length === 0) return null;
 	return (
 		<>
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Відомість оздоблення</p>
-			<div className="mb-3 space-y-0.5">
+			<div className="mb-3 space-y-1.5">
 				{rows.map((r) => (
-					<div key={r.label} className="px-1 py-0.5 text-xs">
+					<div key={r.key} className="px-1 text-xs">
 						<div className="flex justify-between gap-2">
 							<span className="truncate">{r.label}</span>
 							<span className="shrink-0 font-medium">{r.areaM2.toFixed(1)} м²</span>
 						</div>
-						<div className="truncate text-[11px] text-muted">{r.rooms.join(', ')}</div>
+						<div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted">
+							<span className="truncate">{r.rooms.join(', ')}</span>
+							<span className="flex shrink-0 items-center gap-1">
+								<input
+									type="number"
+									defaultValue={r.rate || ''}
+									placeholder="0"
+									onBlur={(e) => setFinishRate(r.key, Number(e.target.value) || 0)}
+									onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+									className="w-14 rounded border border-panel-border bg-page-bg px-1 py-0.5 text-right"
+								/>
+								<span>грн/м² =</span>
+								<span className="w-16 text-right font-medium text-page-text">{r.cost.toLocaleString('uk')}</span>
+							</span>
+						</div>
 					</div>
 				))}
+				<div className="flex justify-between border-t border-panel-border px-1 pt-1 text-sm font-semibold">
+					<span>Разом оздоблення</span>
+					<span>{total.toLocaleString('uk')} грн</span>
+				</div>
 			</div>
 		</>
 	);

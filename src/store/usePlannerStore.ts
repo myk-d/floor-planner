@@ -211,6 +211,7 @@ interface PlannerState {
 	toggleDemolition: () => void;
 	toggleColorByCircuit: () => void;
 	setWallHeight: (cm: number) => void;
+	setFinishRate: (key: string, rate: number) => void;
 	addRoomPreset: (kind: 'rect' | 'L' | 'U' | 'T', at: Vec) => void;
 	saveStyleboard: (name: string) => void;
 	deleteStyleboard: (id: string) => void;
@@ -869,6 +870,10 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	toggleDemolition: () => get().commit((d) => void (d.settings.showDemolition = !d.settings.showDemolition)),
 	toggleColorByCircuit: () => get().commit((d) => void (d.settings.colorByCircuit = !d.settings.colorByCircuit)),
 	setWallHeight: (cm) => get().commit((d) => void (d.settings.wallHeight = cm)),
+	setFinishRate: (key, rate) =>
+		get().commit((d) => {
+			d.settings.finishRates = { ...(d.settings.finishRates ?? {}), [key]: Math.max(0, Math.round(rate)) };
+		}),
 
 	addRoomPreset: (kind, at) => {
 		const { defaultWallThickness: t, defaultWallMaterial: m } = get().scene.settings;
