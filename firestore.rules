@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Приватний застосунок на 2 людини — доступ лише для цих email.
+    // Тримай цей список синхронним із src/constants/allowlist.ts
+    function allowedEmails() {
+      return [
+        'dzeban03@gmail.com',
+        'dzobaniryna@gmail.com'
+      ];
+    }
+
+    function allowed() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in allowedEmails();
+    }
+
+    // Проєкти планувань — спільний воркспейс обох дозволених користувачів.
+    match /projects/{id} {
+      allow read, write: if allowed();
+    }
+
+    // Місце для майбутнього спільного каталогу меблів (поки що read-only).
+    match /catalog/{id} {
+      allow read: if allowed();
+      allow write: if false;
+    }
+  }
+}
