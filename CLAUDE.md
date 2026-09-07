@@ -51,7 +51,8 @@ geometry client-side.
   rows with `qty`/`unit`, incl. `Room.skirting`/`cornice`); `finishEstimate`
   (× `settings.finishRates` / `DEFAULT_FINISH_RATES` → cost + total);
   `WALL_FINISHES`/`CEILING_FINISHES`/`FLOOR_KINDS` (`Room.wallFinish`/`ceilingFinish`).
-- `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `circuits.ts` — `circuitGroups` /
+- `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `engspec.ts` — `engineeringSpec` (symbols
+  by kind шт + routes by kind/gauge м); `circuits.ts` — `circuitGroups` /
   `circuitColorMap` (group engineering by `circuit`, assign colours);
   `elevation.ts` — `wallElevation(scene, wallId)` + `furnitureHeight(kind)` + `wallHeightAt(scene, p)`
   (per-room `Room.ceilingHeight` at a point, else global `settings.wallHeight`; used by elevations + 3D);

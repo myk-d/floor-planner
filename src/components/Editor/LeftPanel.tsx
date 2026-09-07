@@ -4,6 +4,7 @@ import { CATALOG, CATALOG_CATEGORIES, type CatalogCategory } from '../../constan
 import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, type EngCategory } from '../../constants/engineering';
 import { circuitGroups } from '../../domain/circuits';
 import { finishEstimate } from '../../domain/finishes';
+import { engineeringSpec } from '../../domain/engspec';
 import type { FloorKind, LayerName, WallMaterial } from '../../domain/scene';
 import { cn } from '../../utils/cn';
 import { toWorld, usePlannerStore } from '../../store/usePlannerStore';
@@ -301,6 +302,7 @@ function ObjectsTab() {
 					</div>
 				</>
 			)}
+			<EngSummary />
 			<FinishSummary />
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Елементи</p>
 			<div className="space-y-0.5">
@@ -316,6 +318,35 @@ function ObjectsTab() {
 				{scene.rooms.length + scene.furniture.length + scene.symbols.length === 0 && <p className="px-2 py-1 text-xs text-muted">Порожньо</p>}
 			</div>
 		</div>
+	);
+}
+
+function EngSummary() {
+	const scene = usePlannerStore((s) => s.scene);
+	const { symbols, routes } = engineeringSpec(scene);
+	if (symbols.length === 0 && routes.length === 0) return null;
+	return (
+		<>
+			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Специфікація мереж</p>
+			<div className="mb-3 space-y-0.5">
+				{symbols.map((r) => (
+					<div key={r.label} className="flex justify-between gap-2 px-1 text-xs">
+						<span className="truncate">{r.label}</span>
+						<span className="shrink-0 font-medium">
+							{r.qty} {r.unit}
+						</span>
+					</div>
+				))}
+				{routes.map((r) => (
+					<div key={r.label} className="flex justify-between gap-2 px-1 text-xs">
+						<span className="truncate">{r.label}</span>
+						<span className="shrink-0 font-medium">
+							{r.qty.toFixed(1)} {r.unit}
+						</span>
+					</div>
+				))}
+			</div>
+		</>
 	);
 }
 
