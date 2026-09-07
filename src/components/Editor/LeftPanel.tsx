@@ -1,7 +1,7 @@
-import { ChevronDown, Eye, EyeOff, Lock, LockOpen, Search } from 'lucide-react';
+import { Armchair, ChevronDown, ChevronsLeft, ChevronsRight, Eye, EyeOff, Lock, LockOpen, Search, Square, Zap, type LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { CATALOG, CATALOG_CATEGORIES, type CatalogCategory } from '../../constants/catalog';
-import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, type EngCategory } from '../../constants/engineering';
+import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, engSymbolLabel, type EngCategory } from '../../constants/engineering';
 import { circuitGroups } from '../../domain/circuits';
 import { finishEstimate } from '../../domain/finishes';
 import { tilingSchedule } from '../../domain/tiling';
@@ -22,9 +22,22 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function LeftPanel() {
 	const [tab, setTab] = useState<Tab>('catalog');
+	const open = usePlannerStore((s) => s.leftPanelOpen);
+	const toggle = usePlannerStore((s) => s.toggleLeftPanel);
+
+	if (!open) {
+		return (
+			<div className="flex w-9 shrink-0 flex-col items-center border-r border-panel-border bg-panel pt-2">
+				<button onClick={toggle} title="Розгорнути панель" className="rounded p-1.5 text-muted hover:bg-page-bg">
+					<ChevronsRight className="h-4 w-4" />
+				</button>
+			</div>
+		);
+	}
+
 	return (
-		<div className="flex w-64 shrink-0 flex-col border-r border-panel-border bg-panel">
-			<div className="flex border-b border-panel-border text-xs">
+		<div className="flex w-72 shrink-0 flex-col border-r border-panel-border bg-panel">
+			<div className="flex items-stretch border-b border-panel-border text-xs">
 				{TABS.map((t) => (
 					<button
 						key={t.id}
@@ -34,8 +47,11 @@ export default function LeftPanel() {
 						{t.label}
 					</button>
 				))}
+				<button onClick={toggle} title="Згорнути панель" className="shrink-0 border-l border-panel-border px-1.5 text-muted hover:bg-page-bg">
+					<ChevronsLeft className="h-4 w-4" />
+				</button>
 			</div>
-			<div className="min-h-0 flex-1 overflow-y-auto">
+			<div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
 				{tab === 'catalog' && <CatalogTab />}
 				{tab === 'engineering' && <EngineeringTab />}
 				{tab === 'finishes' && <FinishesTab />}
@@ -312,13 +328,13 @@ function ObjectsTab() {
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Елементи</p>
 			<div className="space-y-0.5">
 				{scene.rooms.map((r) => (
-					<Row key={r.id} label={`🏠 ${r.name}`} onClick={() => select({ id: r.id, type: 'room' })} disabled={layers.labels.locked} />
+					<ElementRow key={r.id} icon={Square} label={r.name} onClick={() => select({ id: r.id, type: 'room' })} disabled={layers.labels.locked} />
 				))}
 				{scene.furniture.map((f) => (
-					<Row key={f.id} label={`▫ ${f.label}`} onClick={() => select({ id: f.id, type: 'furniture' })} disabled={layers.furniture.locked} />
+					<ElementRow key={f.id} icon={Armchair} label={f.label} onClick={() => select({ id: f.id, type: 'furniture' })} disabled={layers.furniture.locked} />
 				))}
 				{scene.symbols.map((sy) => (
-					<Row key={sy.id} label={`⚡ ${sy.kind}`} onClick={() => select({ id: sy.id, type: 'symbol' })} disabled={layers.engineering.locked} />
+					<ElementRow key={sy.id} icon={Zap} label={engSymbolLabel(sy.kind)} onClick={() => select({ id: sy.id, type: 'symbol' })} disabled={layers.engineering.locked} />
 				))}
 				{scene.rooms.length + scene.furniture.length + scene.symbols.length === 0 && <p className="px-2 py-1 text-xs text-muted">Порожньо</p>}
 			</div>
@@ -501,10 +517,15 @@ function TilingSummary() {
 	);
 }
 
-function Row({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
+function ElementRow({ icon: Icon, label, onClick, disabled }: { icon: LucideIcon; label: string; onClick: () => void; disabled?: boolean }) {
 	return (
-		<button onClick={onClick} disabled={disabled} className="block w-full truncate rounded px-2 py-1 text-left text-sm hover:bg-page-bg disabled:opacity-40">
-			{label}
+		<button
+			onClick={onClick}
+			disabled={disabled}
+			className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-page-bg disabled:opacity-40"
+		>
+			<Icon className="h-3.5 w-3.5 shrink-0 text-muted" />
+			<span className="truncate">{label}</span>
 		</button>
 	);
 }

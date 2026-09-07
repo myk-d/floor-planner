@@ -5,6 +5,8 @@ import {
 	AlignVerticalJustifyCenter,
 	AlignStartHorizontal,
 	AlignEndHorizontal,
+	ChevronsLeft,
+	ChevronsRight,
 	Copy,
 	RotateCw,
 	Trash2,
@@ -84,28 +86,43 @@ type Patch = (p: Record<string, unknown>) => void;
 
 export default function PropertiesPanel() {
 	const store = usePlannerStore();
-	const { selected } = store;
+	const { selected, rightPanelOpen, toggleRightPanel } = store;
 	const primary = primarySelection(store);
 
-	if (selected.length === 0) {
+	if (!rightPanelOpen) {
 		return (
-			<div className="w-64 shrink-0 border-l border-panel-border bg-panel p-4 text-sm text-muted">
-				Нічого не вибрано. Клацніть на елемент, щоб редагувати його. Shift+клік або рамка — множинний вибір.
+			<div className="flex w-9 shrink-0 flex-col items-center border-l border-panel-border bg-panel pt-2">
+				<button onClick={toggleRightPanel} title="Розгорнути панель" className="rounded p-1.5 text-muted hover:bg-page-bg">
+					<ChevronsLeft className="h-4 w-4" />
+				</button>
 			</div>
 		);
 	}
 
-	if (selected.length > 1) return <MultiPanel />;
-	if (!primary) return null;
-
-	return <SinglePanel sel={primary} />;
+	return (
+		<div className="flex w-72 shrink-0 flex-col border-l border-panel-border bg-panel">
+			<div className="flex shrink-0 items-center justify-between border-b border-panel-border py-1.5 pl-3 pr-1.5">
+				<span className="text-xs font-semibold uppercase tracking-wide text-muted">Властивості</span>
+				<button onClick={toggleRightPanel} title="Згорнути панель" className="rounded p-1 text-muted hover:bg-page-bg">
+					<ChevronsRight className="h-4 w-4" />
+				</button>
+			</div>
+			<div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4">
+				{selected.length === 0 && (
+					<p className="text-sm text-muted">Нічого не вибрано. Клацніть на елемент, щоб редагувати його. Shift+клік або рамка — множинний вибір.</p>
+				)}
+				{selected.length > 1 && <MultiPanel />}
+				{selected.length === 1 && primary && <SinglePanel sel={primary} />}
+			</div>
+		</div>
+	);
 }
 
 function MultiPanel() {
 	const { selected, alignSelected, deleteSelected, duplicateSelected } = usePlannerStore();
 	const counts = selected.reduce<Record<string, number>>((acc, s) => ((acc[s.type] = (acc[s.type] ?? 0) + 1), acc), {});
 	return (
-		<div className="flex w-64 shrink-0 flex-col gap-3 border-l border-panel-border bg-panel p-4">
+		<div className="flex flex-col gap-3">
 			<h3 className="text-sm font-semibold">Вибрано {selected.length}</h3>
 			<p className="text-xs text-muted">{Object.entries(counts).map(([t, n]) => `${typeLabels[t] ?? t}: ${n}`).join(' · ')}</p>
 			<div>
@@ -155,10 +172,10 @@ function SinglePanel({ sel }: { sel: Selection }) {
 	}[sel.type as Exclude<Selection['type'], 'compass'>] as { id: string }[] | undefined;
 	const el = sel.type === 'compass' ? scene.compass : bucket?.find((x) => x.id === sel.id);
 
-	if (!el) return <div className="w-64 shrink-0 border-l border-panel-border bg-panel p-4 text-sm text-muted">Елемент видалено.</div>;
+	if (!el) return <p className="text-sm text-muted">Елемент видалено.</p>;
 
 	return (
-		<div className="flex w-64 shrink-0 flex-col gap-3 overflow-y-auto border-l border-panel-border bg-panel p-4">
+		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between">
 				<h3 className="text-sm font-semibold">{typeLabels[sel.type]}</h3>
 				<div className="flex gap-1">
@@ -709,7 +726,7 @@ function RouteProps({ route, patch }: { route: Route; patch: Patch }) {
 						type="color"
 						value={route.color ?? st.color}
 						onChange={(e) => patch({ color: e.target.value })}
-						className="h-9 w-full rounded-md border border-panel-border"
+						className="h-9 min-w-0 flex-1 rounded-md border border-panel-border"
 					/>
 					{route.color && (
 						<button className="shrink-0 text-xs text-muted hover:text-page-text" onClick={() => patch({ color: undefined })}>

@@ -152,6 +152,9 @@ interface PlannerState {
 	view3d: boolean;
 	/** відкрита довідка гарячих клавіш */
 	helpOpen: boolean;
+	/** розгорнуті бічні панелі */
+	leftPanelOpen: boolean;
+	rightPanelOpen: boolean;
 	/** варіанти планування; `scene` — робоча копія активного */
 	variants: Variant[];
 	activeVariantId: string | null;
@@ -177,6 +180,8 @@ interface PlannerState {
 	toggleGrid: () => void;
 	toggleSnap: () => void;
 	setHelpOpen: (open: boolean) => void;
+	toggleLeftPanel: () => void;
+	toggleRightPanel: () => void;
 	setStageSize: (size: { width: number; height: number }) => void;
 	setUnits: (units: Units) => void;
 	setGridStep: (grid: number) => void;
@@ -426,6 +431,8 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	elevationWallId: null,
 	view3d: false,
 	helpOpen: false,
+	leftPanelOpen: true,
+	rightPanelOpen: true,
 	variants: [],
 	activeVariantId: null,
 
@@ -563,6 +570,8 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	toggleGrid: () => set({ showGrid: !get().showGrid }),
 	toggleSnap: () => set({ snapEnabled: !get().snapEnabled }),
 	setHelpOpen: (open) => set({ helpOpen: open }),
+	toggleLeftPanel: () => set((s) => ({ leftPanelOpen: !s.leftPanelOpen })),
+	toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
 	setStageSize: (stageSize) => set({ stageSize }),
 	setUnits: (units) => get().commit((d) => void (d.settings.units = units)),
 	setGridStep: (grid) => get().commit((d) => void (d.settings.grid = grid)),

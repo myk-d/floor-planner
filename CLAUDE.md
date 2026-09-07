@@ -138,9 +138,13 @@ silhouettes projected onto the wall axis, dimension chain — with PNG/PDF downl
 - `LeftPanel.tsx` — tabs: **Каталог** (`constants/catalog.ts`, ~100 items, HTML5 drag-to-canvas),
   **Інженерне** (`constants/engineering.ts`: Електрика/Сантехніка/Опалення/Ремонт — symbol
   palettes + wire/pipe tools + `ZONE_KINDS` zone tools), **Оздоблення** (styleboards +
-  apply-finish-to-selection), **Об'єкти** (layers, circuit legend, element list).
-- `PropertiesPanel.tsx` — 0 → hint; 1 → per-type editor (wall gets status + "Розгортка"; opening
-  gets sill/head + status; route gets `gauge`/`circuit`; surface/zone editors); ≥2 → align + dup.
+  apply-finish-to-selection), **Об'єкти** (planning-variants block, layers, circuit legend, the
+  computed summaries, element list via `ElementRow` — lucide icon + label). Collapses to a
+  `w-9` rail (`usePlannerStore.leftPanelOpen` / `toggleLeftPanel`).
+- `PropertiesPanel.tsx` — a shell (`rightPanelOpen` / `toggleRightPanel`, `w-9` rail when closed)
+  wrapping: 0 → hint; 1 → per-type editor (wall gets status + "Розгортка"; opening gets
+  sill/head + status; route gets `gauge`/`circuit`/`color`; room gets finishes + tile layout;
+  surface/zone editors); ≥2 → align + dup.
 - `TopBar.tsx` — title, undo/redo, fit, zoom, 2D/3D, render-mode toggle, overall-chains,
   compass, detect-rooms, demolition toggle, colour-by-circuit toggle, `.floorplan` download,
   units, save, export.
