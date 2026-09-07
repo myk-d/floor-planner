@@ -3,8 +3,8 @@ import type { KonvaEventObject } from 'konva/lib/Node';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Label, Layer, Line, Rect, Stage, Tag, Text, Transformer } from 'react-konva';
 import { measureLabel } from '../../../domain/dimensions';
-import { pointToSegment } from '../../../domain/geometry';
-import { formatLengthShort } from '../../../domain/units';
+import { normalize, pointToSegment, sub } from '../../../domain/geometry';
+import { formatLengthShort, parseLength } from '../../../domain/units';
 import { snapToGrid, snapToVertices, snapWallAngle } from '../../../domain/snapping';
 import type { RouteKind, Vec } from '../../../domain/scene';
 import { toWorld, usePlannerStore, type Selection } from '../../../store/usePlannerStore';
@@ -98,6 +98,7 @@ export default function PlannerCanvas() {
 	const [dimStart, setDimStart] = useState<Vec | null>(null);
 	const [chain, setChain] = useState<Vec[] | null>(null); // room-poly / wire / pipe / heatzone
 	const [marquee, setMarquee] = useState<{ a: Vec; b: Vec } | null>(null);
+	const [lenInput, setLenInput] = useState('');
 	const [menu, setMenu] = useState<Menu>(null);
 	const panRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 	const spaceRef = useRef(false);
@@ -383,6 +384,23 @@ export default function PlannerCanvas() {
 		return { at: toS(cursor), text: `${formatLengthShort(len, u)}  ·  ${ang}°` };
 	})();
 
+	// введення довжини з клавіатури під час малювання сегмента
+	const drawingSegment = (tool === 'wall' && !!wallDraft && wallDraft.length > 0) || (isChainTool && !!chain && chain.length > 0);
+	const commitTypedLength = () => {
+		const cm = parseLength(lenInput, scene.settings.units);
+		if (cm == null || cm <= 0 || !cursor) return;
+		const pts = tool === 'wall' ? wallDraft! : chain!;
+		const last = pts[pts.length - 1];
+		const useAngleSnap = snapEnabled && tool !== 'room-poly' && tool !== 'surface' && tool !== 'zone';
+		const aimed = useAngleSnap ? snapWallAngle(last, cursor) : cursor;
+		let dir = normalize(sub(aimed, last));
+		if (dir.x === 0 && dir.y === 0) dir = { x: 1, y: 0 };
+		const p = { x: Math.round(last.x + dir.x * cm), y: Math.round(last.y + dir.y * cm) };
+		if (tool === 'wall') setWallDraft([...pts, p]);
+		else setChain([...pts, p]);
+		setLenInput('');
+	};
+
 	const cursorStyle = tool === 'pan' ? 'grab' : tool === 'select' ? 'default' : 'crosshair';
 
 	return (
@@ -546,6 +564,29 @@ export default function PlannerCanvas() {
 				<button onClick={() => setTool('select')} className="absolute right-4 top-4 rounded-md border border-panel-border bg-panel px-3 py-1.5 text-xs shadow">
 					Готово
 				</button>
+			)}
+			{drawingSegment && (
+				<div className="absolute left-1/2 top-14 flex -translate-x-1/2 items-center gap-1.5 rounded-md border border-panel-border bg-panel px-2 py-1 text-xs shadow">
+					<span className="text-muted">Довжина</span>
+					<input
+						autoFocus
+						inputMode="decimal"
+						value={lenInput}
+						onChange={(e) => setLenInput(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter') {
+								e.preventDefault();
+								commitTypedLength();
+							} else if (e.key === 'Escape') {
+								(e.target as HTMLInputElement).blur();
+							}
+						}}
+						placeholder={drawHint ? drawHint.text.split(' ')[0] : '0'}
+						className="w-20 rounded border border-panel-border bg-page-bg px-1.5 py-0.5 outline-none focus:border-brand"
+					/>
+					<span className="text-muted">{{ m: 'м', cm: 'см', mm: 'мм' }[scene.settings.units]}</span>
+					<kbd className="rounded bg-page-bg px-1 text-[10px] text-muted">Enter</kbd>
+				</div>
 			)}
 
 			{menu && (
