@@ -10,7 +10,8 @@ import {
 	Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
-import { distance, polygonAreaM2, polygonPerimeterCm } from '../../domain/geometry';
+import { distance, polygonAreaM2 } from '../../domain/geometry';
+import { CEILING_FINISHES, roomSurfaceAreas, WALL_FINISHES } from '../../domain/finishes';
 import { routeStyle, ROUTE_STYLES, engSymbolLabel } from '../../constants/engineering';
 import type {
 	DimLine,
@@ -19,6 +20,7 @@ import type {
 	Opening,
 	Room,
 	Route,
+	Scene,
 	Surface,
 	SymbolItem,
 	TextLabel,
@@ -178,7 +180,13 @@ function SinglePanel({ sel }: { sel: Selection }) {
 
 			{sel.type === 'wall' && <WallProps wall={el as Wall} patch={patchSelected} select={select} />}
 			{sel.type === 'room' && (
-				<RoomProps room={el as Room} patch={patchSelected} setFloor={(f) => setRoomFloor((el as Room).id, f)} fallbackHeight={scene.settings.wallHeight} />
+				<RoomProps
+					room={el as Room}
+					patch={patchSelected}
+					setFloor={(f) => setRoomFloor((el as Room).id, f)}
+					fallbackHeight={scene.settings.wallHeight}
+					scene={scene}
+				/>
 			)}
 			{sel.type === 'surface' && <SurfaceProps surface={el as Surface} patch={patchSelected} />}
 			{sel.type === 'furniture' && <FurnitureProps item={el as Furniture} patch={patchSelected} />}
@@ -296,12 +304,15 @@ function RoomProps({
 	patch,
 	setFloor,
 	fallbackHeight,
+	scene,
 }: {
 	room: Room;
 	patch: Patch;
 	setFloor: (f: { kind?: FloorKind; color?: string }) => void;
 	fallbackHeight: number;
+	scene: Scene;
 }) {
+	const areas = roomSurfaceAreas(scene, room);
 	return (
 		<>
 			<Field label="Назва">
@@ -334,14 +345,38 @@ function RoomProps({
 					<input type="color" value={room.floor.color} onChange={(e) => setFloor({ color: e.target.value })} className="h-9 w-full rounded-md border border-panel-border" />
 				</Field>
 			)}
-			<div className="rounded-md bg-page-bg p-2 text-sm">
+			<div className="grid grid-cols-2 gap-2">
+				<Field label="Оздоблення стін">
+					<Select value={room.wallFinish ?? 'none'} onChange={(e) => patch({ wallFinish: e.target.value })}>
+						{WALL_FINISHES.map((f) => (
+							<option key={f.v} value={f.v}>
+								{f.l}
+							</option>
+						))}
+					</Select>
+				</Field>
+				<Field label="Стеля">
+					<Select value={room.ceilingFinish ?? 'none'} onChange={(e) => patch({ ceilingFinish: e.target.value })}>
+						{CEILING_FINISHES.map((f) => (
+							<option key={f.v} value={f.v}>
+								{f.l}
+							</option>
+						))}
+					</Select>
+				</Field>
+			</div>
+			<div className="space-y-1 rounded-md bg-page-bg p-2 text-sm">
 				<div className="flex justify-between">
-					<span className="text-muted">Площа</span>
-					<span className="font-medium">{formatAreaM2(polygonAreaM2(room.points))}</span>
+					<span className="text-muted">Підлога / стеля</span>
+					<span className="font-medium">{areas.floorM2.toFixed(2)} м²</span>
 				</div>
 				<div className="flex justify-between">
-					<span className="text-muted">Периметр</span>
-					<span className="font-medium">{(polygonPerimeterCm(room.points) / 100).toFixed(2)} м</span>
+					<span className="text-muted">Стіни, чисті</span>
+					<span className="font-medium">{areas.wallNetM2.toFixed(2)} м²</span>
+				</div>
+				<div className="text-xs text-muted">
+					{areas.perimeterM.toFixed(2)} × {areas.heightM.toFixed(2)} м = {areas.wallGrossM2.toFixed(1)}
+					{areas.openingsM2 > 0 && ` − ${areas.openingsM2.toFixed(1)} отвори`}
 				</div>
 			</div>
 			<DiagonalCheck points={room.points} />

@@ -34,6 +34,9 @@ export interface RoomFloor {
 	color: string;
 }
 
+export type WallFinish = 'none' | 'paint' | 'wallpaper' | 'plaster' | 'tile' | 'panel';
+export type CeilingFinish = 'none' | 'paint' | 'stretch' | 'plasterboard' | 'whitewash';
+
 export interface Room {
 	id: string;
 	/** полігон вершин у порядку обходу */
@@ -42,6 +45,9 @@ export interface Room {
 	floor: RoomFloor;
 	/** висота стелі, см; якщо не задано — береться `settings.wallHeight` */
 	ceilingHeight?: number;
+	/** оздоблення стін / стелі (для підрахунку площ і кошторису) */
+	wallFinish?: WallFinish;
+	ceilingFinish?: CeilingFinish;
 }
 
 export type OpeningType = 'door' | 'window' | 'opening';

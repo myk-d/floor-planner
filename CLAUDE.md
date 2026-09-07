@@ -44,6 +44,8 @@ geometry client-side.
 - `rooms.ts` — `detectRooms(walls)`: **planarizes** walls (splits at T-junctions) then traces
   minimal graph faces, drops the outer. `reconcileRooms` keeps names/floors by centroid.
 - `walls.ts` — `wallNodes`, `moveNode`, `splitWall`, `mergeCollinear`.
+- `finishes.ts` — `roomSurfaceAreas(scene, room)` (floor/ceiling/gross+net wall m², openings on
+  bordering walls subtracted) + `WALL_FINISHES`/`CEILING_FINISHES` (`Room.wallFinish`/`ceilingFinish`).
 - `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `circuits.ts` — `circuitGroups` /
   `circuitColorMap` (group engineering by `circuit`, assign colours);
   `elevation.ts` — `wallElevation(scene, wallId)` + `furnitureHeight(kind)` + `wallHeightAt(scene, p)`
