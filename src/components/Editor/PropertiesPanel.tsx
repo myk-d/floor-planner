@@ -176,7 +176,9 @@ function SinglePanel({ sel }: { sel: Selection }) {
 			</div>
 
 			{sel.type === 'wall' && <WallProps wall={el as Wall} patch={patchSelected} select={select} />}
-			{sel.type === 'room' && <RoomProps room={el as Room} patch={patchSelected} setFloor={(f) => setRoomFloor((el as Room).id, f)} />}
+			{sel.type === 'room' && (
+				<RoomProps room={el as Room} patch={patchSelected} setFloor={(f) => setRoomFloor((el as Room).id, f)} fallbackHeight={scene.settings.wallHeight} />
+			)}
 			{sel.type === 'surface' && <SurfaceProps surface={el as Surface} patch={patchSelected} />}
 			{sel.type === 'furniture' && <FurnitureProps item={el as Furniture} patch={patchSelected} />}
 			{sel.type === 'opening' && <OpeningProps opening={el as Opening} patch={patchSelected} />}
@@ -276,11 +278,34 @@ function WallProps({ wall, patch, select }: { wall: Wall; patch: Patch; select: 
 	);
 }
 
-function RoomProps({ room, patch, setFloor }: { room: Room; patch: Patch; setFloor: (f: { kind?: FloorKind; color?: string }) => void }) {
+function RoomProps({
+	room,
+	patch,
+	setFloor,
+	fallbackHeight,
+}: {
+	room: Room;
+	patch: Patch;
+	setFloor: (f: { kind?: FloorKind; color?: string }) => void;
+	fallbackHeight: number;
+}) {
 	return (
 		<>
 			<Field label="Назва">
 				<Input key={room.id} defaultValue={room.name} onBlur={(e) => patch({ name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
+			</Field>
+			<Field label="Висота стелі, см">
+				<Input
+					key={room.id + '-ch'}
+					type="number"
+					defaultValue={room.ceilingHeight ?? ''}
+					placeholder={String(fallbackHeight)}
+					onBlur={(e) => {
+						const v = Math.round(Number(e.target.value));
+						patch({ ceilingHeight: e.target.value.trim() && v > 0 ? v : undefined });
+					}}
+					onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+				/>
 			</Field>
 			<Field label="Покриття підлоги">
 				<Select value={room.floor.kind} onChange={(e) => setFloor({ kind: e.target.value as FloorKind })}>

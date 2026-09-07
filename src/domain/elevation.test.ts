@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { wallElevation } from './elevation';
+import { wallElevation, wallHeightAt } from './elevation';
 import { emptyScene, makeRoomRect, newId, type Scene } from './scene';
 
 function scene(): Scene {
@@ -34,5 +34,24 @@ describe('wallElevation', () => {
 
 	it('null for unknown wall', () => {
 		expect(wallElevation(scene() as unknown as Scene, 'nope')).toBeNull();
+	});
+});
+
+describe('wallHeightAt (per-room ceiling)', () => {
+	it('uses a room ceilingHeight for an interior point, global elsewhere', () => {
+		const s = emptyScene();
+		const { walls, room } = makeRoomRect(0, 0, 400, 300, 10, 'K');
+		room.ceilingHeight = 320;
+		s.walls.push(...walls);
+		s.rooms.push(room);
+		expect(wallHeightAt(s, { x: 200, y: 150 })).toBe(320);
+		expect(wallHeightAt(s, { x: 9000, y: 9000 })).toBe(s.settings.wallHeight);
+	});
+
+	it('falls back to global wallHeight when the room has none', () => {
+		const s = emptyScene();
+		const { room } = makeRoomRect(0, 0, 400, 300, 10, 'K');
+		s.rooms.push(room);
+		expect(wallHeightAt(s, { x: 200, y: 150 })).toBe(s.settings.wallHeight);
 	});
 });

@@ -3,7 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { furnitureHeight } from '../../../domain/elevation';
+import { furnitureHeight, wallHeightAt } from '../../../domain/elevation';
 import { sceneBBox } from '../../../domain/geometry';
 import type { Opening, Scene, Wall } from '../../../domain/scene';
 import { floorHatch, floorTint, wallHatch, WALL_MATERIAL_COLOR } from '../render/hatch';
@@ -156,7 +156,6 @@ function Scene3DInner({ scene }: { scene: Scene }) {
 	const cx = ((bbox.minX + bbox.maxX) / 2 || 0) * S;
 	const cz = ((bbox.minY + bbox.maxY) / 2 || 0) * S;
 	const span = Math.max(bbox.maxX - bbox.minX, bbox.maxY - bbox.minY, 300) * S;
-	const H = scene.settings.wallHeight;
 
 	const controls = useRef<OrbitControlsImpl | null>(null);
 	const [view, setView] = useState<{ preset: ViewPreset; nonce: number }>({ preset: 'iso', nonce: 0 });
@@ -185,7 +184,12 @@ function Scene3DInner({ scene }: { scene: Scene }) {
 				))}
 
 				{scene.walls.map((w) => (
-					<WallMesh key={w.id} wall={w} openings={scene.openings.filter((o) => o.wallId === w.id)} height={H} />
+					<WallMesh
+						key={w.id}
+						wall={w}
+						openings={scene.openings.filter((o) => o.wallId === w.id)}
+						height={wallHeightAt(scene, { x: (w.a.x + w.b.x) / 2, y: (w.a.y + w.b.y) / 2 })}
+					/>
 				))}
 
 				{scene.furniture.map((f) => (

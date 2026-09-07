@@ -1,5 +1,14 @@
-import { distance, normalize, pointToSegment, sub } from './geometry';
+import { distance, normalize, pointInPolygon, pointToSegment, sub } from './geometry';
 import type { Scene, Vec } from './scene';
+
+/** Висота стелі в точці `p`: максимум серед кімнат, що її містять; інакше — глобальна `wallHeight`. */
+export function wallHeightAt(scene: Scene, p: Vec): number {
+	let h = 0;
+	for (const r of scene.rooms) {
+		if (r.points.length >= 3 && pointInPolygon(p, r.points)) h = Math.max(h, r.ceilingHeight ?? scene.settings.wallHeight);
+	}
+	return h || scene.settings.wallHeight;
+}
 
 export interface ElevationOpening {
 	x: number; // від лівого краю стіни, см
@@ -59,7 +68,7 @@ export function wallElevation(scene: Scene, wallId: string): WallElevation | nul
 	if (!wall) return null;
 	const length = distance(wall.a, wall.b);
 	const dir = normalize(sub(wall.b, wall.a));
-	const height = scene.settings.wallHeight;
+	const height = wallHeightAt(scene, { x: (wall.a.x + wall.b.x) / 2, y: (wall.a.y + wall.b.y) / 2 });
 
 	const openings: ElevationOpening[] = scene.openings
 		.filter((o) => o.wallId === wallId)

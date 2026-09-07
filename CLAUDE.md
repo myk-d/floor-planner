@@ -45,7 +45,8 @@ geometry client-side.
 - `walls.ts` — `wallNodes`, `moveNode`, `splitWall`, `mergeCollinear`.
 - `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `circuits.ts` — `circuitGroups` /
   `circuitColorMap` (group engineering by `circuit`, assign colours);
-  `elevation.ts` — `wallElevation(scene, wallId)` + `furnitureHeight(kind)`;
+  `elevation.ts` — `wallElevation(scene, wallId)` + `furnitureHeight(kind)` + `wallHeightAt(scene, p)`
+  (per-room `Room.ceilingHeight` at a point, else global `settings.wallHeight`; used by elevations + 3D);
   `svgExport.ts` — `sceneToSVG` (vector, 1 unit = 1 cm); `projectFile.ts` —
   `toProjectFile`/`fromProjectFile` (`.floorplan` JSON round-trip).
 

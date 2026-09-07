@@ -38,6 +38,8 @@ export interface Room {
 	points: Vec[];
 	name: string;
 	floor: RoomFloor;
+	/** висота стелі, см; якщо не задано — береться `settings.wallHeight` */
+	ceilingHeight?: number;
 }
 
 export type OpeningType = 'door' | 'window' | 'opening';
