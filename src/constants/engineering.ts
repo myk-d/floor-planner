@@ -60,6 +60,43 @@ export const ENG_SYMBOLS: EngSymbol[] = [
 
 export const ENG_CATEGORIES: EngCategory[] = ['Електрика', 'Сантехніка', 'Опалення', 'Ремонт'];
 
+/** Типова висота монтажу символу від підлоги, см. `ceilingCm` — для стельових. */
+export function symbolMountHeight(kind: string, ceilingCm = 270): number {
+	const H: Record<string, number> = {
+		socket: 30,
+		'socket-double': 30,
+		'socket-quad': 30,
+		'socket-waterproof': 110,
+		'socket-floor': 3,
+		'switch-1': 90,
+		'switch-2': 90,
+		'switch-3': 90,
+		'switch-pass': 90,
+		dimmer: 90,
+		'light-wall': 200,
+		panel: 150,
+		'junction-box': ceilingCm - 20,
+		'water-cold': 60,
+		'water-hot': 60,
+		'sewer-out': 15,
+		'floor-drain': 0,
+		manifold: 60,
+		riser: 0,
+		'radiator-bimetal': 12,
+		'radiator-steel': 12,
+		'radiator-castiron': 12,
+		'radiator-tubular': 12,
+		'radiator-vertical': 40,
+		'convector-floor': 0,
+		thermostat: 90,
+	};
+	if (kind === 'light-ceiling' || kind === 'light-spot') return ceilingCm;
+	return H[kind] ?? 30;
+}
+
+/** true — символ монтується на стелі (позначку висоти показуємо як «стеля»). */
+export const isCeilingSymbol = (kind: string): boolean => kind === 'light-ceiling' || kind === 'light-spot';
+
 export interface RouteStyle {
 	kind: RouteKind;
 	label: string;

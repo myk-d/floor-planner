@@ -5,7 +5,8 @@ import { manualDimensions, overallChains, roomLabels, wallDimensions, type DimSe
 import { distance, normalize, segmentNormal, sub } from '../../../domain/geometry';
 import type { LayerName, Opening, Scene, Vec, Wall } from '../../../domain/scene';
 import { circuitColorMap } from '../../../domain/circuits';
-import { zoneStyle } from '../../../constants/engineering';
+import { wallHeightAt } from '../../../domain/elevation';
+import { isCeilingSymbol, symbolMountHeight, zoneStyle } from '../../../constants/engineering';
 import type { Selection, SelectableType } from '../../../store/usePlannerStore';
 import { layerOf, toWorld, type View } from '../../../store/usePlannerStore';
 import FurnitureShape from '../furniture/FurnitureShape';
@@ -59,12 +60,14 @@ export interface SceneViewOptions {
 	showFurnitureLabels: boolean;
 	showTexts: boolean;
 	showEngineering: boolean;
+	showSymbolHeights: boolean;
 	showFinishes: boolean;
 	showCompass: boolean;
 }
 
 export const defaultOptions: SceneViewOptions = {
 	showGrid: true,
+	showSymbolHeights: true,
 	showDimensions: true,
 	showOverallChains: true,
 	showRoomLabels: true,
@@ -278,19 +281,34 @@ export default function SceneView({
 					layerVisible('engineering') &&
 					scene.symbols.map((sy) => {
 						const pos = symbolPos(sy, scene);
+						const h = sy.mountHeight ?? symbolMountHeight(sy.kind, wallHeightAt(scene, pos));
 						return (
-							<Group
-								key={sy.id}
-								x={pos.x}
-								y={pos.y}
-								rotation={sy.rotation}
-								draggable={draggable && interactive && !layerLocked('engineering')}
-								onMouseDown={hit('symbol', sy.id)}
-								onDragEnd={(e) => onElementDragEnd?.({ id: sy.id, type: 'symbol' }, Math.round(e.target.x()), Math.round(e.target.y()))}
-							>
-								<SymbolShape item={sy} theme={theme} scale={scale} colorOverride={circuitColors?.get(sy.id)} />
-								{isSel(sy.id) && <Circle radius={px(15)} stroke={theme.selection} strokeWidth={px(1.5)} dash={[px(3), px(2)]} listening={false} />}
-							</Group>
+							<Fragment key={sy.id}>
+								<Group
+									x={pos.x}
+									y={pos.y}
+									rotation={sy.rotation}
+									draggable={draggable && interactive && !layerLocked('engineering')}
+									onMouseDown={hit('symbol', sy.id)}
+									onDragEnd={(e) => onElementDragEnd?.({ id: sy.id, type: 'symbol' }, Math.round(e.target.x()), Math.round(e.target.y()))}
+								>
+									<SymbolShape item={sy} theme={theme} scale={scale} colorOverride={circuitColors?.get(sy.id)} />
+									{isSel(sy.id) && <Circle radius={px(15)} stroke={theme.selection} strokeWidth={px(1.5)} dash={[px(3), px(2)]} listening={false} />}
+								</Group>
+								{opt.showSymbolHeights && (
+									<Text
+										x={pos.x}
+										y={pos.y + px(13)}
+										text={isCeilingSymbol(sy.kind) ? 'стеля' : String(Math.round(h))}
+										fontSize={px(9)}
+										fill={theme.dimensionText}
+										align="center"
+										width={px(60)}
+										offsetX={px(30)}
+										listening={false}
+									/>
+								)}
+							</Fragment>
 						);
 					})}
 

@@ -16,6 +16,7 @@ const OPTION_LABELS: { key: keyof SceneViewOptions; label: string }[] = [
 	{ key: 'showRoomLabels', label: 'Назви та площі кімнат' },
 	{ key: 'showFurnitureLabels', label: 'Підписи меблів' },
 	{ key: 'showEngineering', label: 'Інженерні елементи' },
+	{ key: 'showSymbolHeights', label: 'Висоти інженерних символів' },
 	{ key: 'showFinishes', label: 'Покриття / штриховки' },
 	{ key: 'showGrid', label: 'Сітка' },
 	{ key: 'showTexts', label: 'Текстові підписи' },

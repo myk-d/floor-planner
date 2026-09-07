@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import { distance, polygonAreaM2 } from '../../domain/geometry';
 import { CEILING_FINISHES, FLOOR_KINDS, roomSurfaceAreas, WALL_FINISHES } from '../../domain/finishes';
-import { routeStyle, ROUTE_STYLES, engSymbolLabel } from '../../constants/engineering';
+import { routeStyle, ROUTE_STYLES, engSymbolLabel, symbolMountHeight } from '../../constants/engineering';
 import type {
 	DimLine,
 	FloorKind,
@@ -545,6 +545,19 @@ function SymbolProps({ sym, patch }: { sym: SymbolItem; patch: Patch }) {
 			</Field>
 			<Field label="Група/лінія">
 				<Input defaultValue={sym.circuit ?? ''} onBlur={(e) => patch({ circuit: e.target.value || undefined })} placeholder="напр. Кухня-1" />
+			</Field>
+			<Field label="Висота монтажу, см">
+				<Input
+					key={sym.id + '-h'}
+					type="number"
+					defaultValue={sym.mountHeight ?? ''}
+					placeholder={String(symbolMountHeight(sym.kind))}
+					onBlur={(e) => {
+						const v = Math.round(Number(e.target.value));
+						patch({ mountHeight: e.target.value.trim() && v >= 0 ? v : undefined });
+					}}
+					onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+				/>
 			</Field>
 			{sym.wallId != null && (
 				<Field label="Зсув уздовж стіни">

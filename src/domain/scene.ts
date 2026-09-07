@@ -138,6 +138,8 @@ export interface SymbolItem {
 	offset?: number;
 	/** група/лінія живлення — для авто-кольору */
 	circuit?: string;
+	/** висота монтажу від підлоги, см; якщо не задано — авто за типом */
+	mountHeight?: number;
 }
 
 export type RouteKind = 'wire' | 'pipe-cold' | 'pipe-hot' | 'pipe-sewer' | 'heat-supply' | 'heat-return';
