@@ -128,3 +128,7 @@ in sync. `useAuthStore` signs out any Google account not in the list.
   roof, terrain.
 - **Deferred**: trace-over background image (upload a scan and draw over it) — would need a
   base64 blob in the Firestore doc, since the project has no Firebase Storage.
+
+Feature backlog / ideas for future work: `docs/FEATURES.md`. Note the app is for **personal
+use** (the owners planning their own flat) — that doc's roadmap is prioritised accordingly and
+skips agency/commercial features.
