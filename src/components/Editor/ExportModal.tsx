@@ -40,14 +40,15 @@ export default function ExportModal({ open, onClose }: { open: boolean; onClose:
 	const [showTitleBlock, setShowTitleBlock] = useState(true);
 	const [showFurnitureLegend, setShowFurnitureLegend] = useState(false);
 	const [showRoomTable, setShowRoomTable] = useState(true);
+	const [showFinishSchedule, setShowFinishSchedule] = useState(false);
 	const [opts, setOpts] = useState<SceneViewOptions>({ ...defaultOptions, showGrid: false });
 	const [busy, setBusy] = useState(false);
 
 	const fileBase = (scene.settings.title || 'plan').replace(/[^\p{L}\p{N}_-]+/gu, '_');
 
 	const exportOpts = useMemo<ExportOptions>(
-		() => ({ theme, pixelRatio, options: opts, title: scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, paper, orientation, scaleRatio, dpi }),
-		[theme, pixelRatio, opts, scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, paper, orientation, scaleRatio, dpi],
+		() => ({ theme, pixelRatio, options: opts, title: scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, showFinishSchedule, paper, orientation, scaleRatio, dpi }),
+		[theme, pixelRatio, opts, scene.settings.title, showTitleBlock, showFurnitureLegend, showRoomTable, showFinishSchedule, paper, orientation, scaleRatio, dpi],
 	);
 	const fits = paper === 'fit' || exportFits(scene, exportOpts);
 
@@ -189,6 +190,10 @@ export default function ExportModal({ open, onClose }: { open: boolean; onClose:
 						<label className="flex items-center gap-2">
 							<input type="checkbox" checked={showFurnitureLegend} onChange={(e) => setShowFurnitureLegend(e.target.checked)} />
 							Специфікація меблів
+						</label>
+						<label className="flex items-center gap-2">
+							<input type="checkbox" checked={showFinishSchedule} onChange={(e) => setShowFinishSchedule(e.target.checked)} />
+							Відомість оздоблення
 						</label>
 					</div>
 				</div>

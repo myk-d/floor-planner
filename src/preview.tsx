@@ -71,6 +71,7 @@ function Preview() {
 			showTitleBlock: true,
 			showFurnitureLegend: true,
 			showRoomTable: true,
+			showFinishSchedule: true,
 			paper: 'A3',
 			orientation: 'auto',
 			scaleRatio: 50,

@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { Group, Layer, Line, Rect, Stage, Text } from 'react-konva';
 import { totalAreaM2 } from '../../../domain/dimensions';
 import { sceneBBox } from '../../../domain/geometry';
+import { finishEstimate } from '../../../domain/finishes';
 import { furnitureSchedule, roomSchedule } from '../../../domain/schedule';
 import type { RenderMode, Scene } from '../../../domain/scene';
 import { formatAreaM2, unitLabel } from '../../../domain/units';
@@ -22,6 +23,7 @@ export interface ExportOptions {
 	showTitleBlock: boolean;
 	showFurnitureLegend: boolean;
 	showRoomTable: boolean;
+	showFinishSchedule: boolean;
 	paper: PaperSize;
 	orientation: 'landscape' | 'portrait' | 'auto';
 	scaleRatio: ScaleRatio;
@@ -121,6 +123,11 @@ function ExportStage({
 	const totalArea = totalAreaM2(scene);
 	const furn = opts.showFurnitureLegend ? furnitureSchedule(scene) : [];
 	const rooms = opts.showRoomTable ? roomSchedule(scene) : { rows: [], totalM2: 0 };
+	const finish = opts.showFinishSchedule ? finishEstimate(scene) : { rows: [], total: 0 };
+	const tableH = (n: number) => (n > 0 ? 34 + (n + 1) * 18 + 14 : 0); // висота таблиці + відступ
+	const furnY = 16;
+	const roomsY = furnY + tableH(furn.length);
+	const finishY = roomsY + tableH(rooms.rows.length);
 
 	const infoLines = [
 		`Дата: ${new Date().toLocaleDateString('uk-UA')}`,
@@ -161,7 +168,7 @@ function ExportStage({
 				{opts.showFurnitureLegend && furn.length > 0 && (
 					<ScheduleTable
 						x={layout.width - 296}
-						y={16}
+						y={furnY}
 						title="Специфікація меблів"
 						theme={theme}
 						rows={furn.map((f) => [`${f.label}`, `${f.w}×${f.d}`, `×${f.count}`])}
@@ -172,11 +179,25 @@ function ExportStage({
 				{opts.showRoomTable && rooms.rows.length > 0 && (
 					<ScheduleTable
 						x={layout.width - 296}
-						y={16 + (opts.showFurnitureLegend && furn.length ? 40 + furn.length * 18 + 28 : 0)}
+						y={roomsY}
 						title="Експлікація приміщень"
 						theme={theme}
 						rows={[...rooms.rows.map((r) => [r.name, '', `${r.areaM2.toFixed(2)} м²`]), ['Разом', '', `${rooms.totalM2.toFixed(2)} м²`]]}
 						widths={[190, 20, 70]}
+					/>
+				)}
+
+				{opts.showFinishSchedule && finish.rows.length > 0 && (
+					<ScheduleTable
+						x={layout.width - 296}
+						y={finishY}
+						title="Відомість оздоблення"
+						theme={theme}
+						rows={[
+							...finish.rows.map((r) => [r.label, `${r.areaM2.toFixed(1)} м²`, r.cost ? r.cost.toLocaleString('uk') : '—']),
+							['Разом, грн', '', finish.total.toLocaleString('uk')],
+						]}
+						widths={[170, 55, 55]}
 					/>
 				)}
 			</Layer>
