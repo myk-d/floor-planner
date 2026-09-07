@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { roomSurfaceAreas } from './finishes';
+import { finishSchedule, roomSurfaceAreas } from './finishes';
 import { emptyScene, type Room } from './scene';
 
 function rectRoom(): Room {
@@ -49,6 +49,19 @@ describe('roomSurfaceAreas', () => {
 		s.walls.push({ id: 'far', a: { x: 0, y: 900 }, b: { x: 400, y: 900 }, thickness: 10, material: 'brick', status: 'existing' });
 		s.openings.push({ id: 'o', wallId: 'far', offset: 200, width: 100, type: 'window', flip: false });
 		expect(roomSurfaceAreas(s, room).openingsM2).toBe(0);
+	});
+
+	it('finishSchedule aggregates same finish across rooms and skips none', () => {
+		const s = emptyScene();
+		const r1 = { ...rectRoom(), id: 'a', name: 'Кухня', wallFinish: 'tile' as const, floor: { kind: 'tile' as const, color: '#fff' } };
+		const r2 = { ...rectRoom(), id: 'b', name: 'Санвузол', wallFinish: 'tile' as const, ceilingFinish: 'none' as const, floor: { kind: 'none' as const, color: '#fff' } };
+		s.rooms.push(r1, r2);
+		const rows = finishSchedule(s);
+		const wallTile = rows.find((x) => x.label.startsWith('Стіни: Плитка'));
+		expect(wallTile?.areaM2).toBeCloseTo(37.8 * 2);
+		expect(wallTile?.rooms.sort()).toEqual(['Кухня', 'Санвузол']);
+		expect(rows.find((x) => x.label.startsWith('Підлога: Плитка'))?.rooms).toEqual(['Кухня']);
+		expect(rows.some((x) => x.surface === 'ceiling')).toBe(false);
 	});
 
 	it('uses the room ceilingHeight when set', () => {

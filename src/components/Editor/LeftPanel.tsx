@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { CATALOG, CATALOG_CATEGORIES, type CatalogCategory } from '../../constants/catalog';
 import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, type EngCategory } from '../../constants/engineering';
 import { circuitGroups } from '../../domain/circuits';
+import { finishSchedule } from '../../domain/finishes';
 import type { FloorKind, LayerName, WallMaterial } from '../../domain/scene';
 import { cn } from '../../utils/cn';
 import { toWorld, usePlannerStore } from '../../store/usePlannerStore';
@@ -300,6 +301,7 @@ function ObjectsTab() {
 					</div>
 				</>
 			)}
+			<FinishSummary />
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Елементи</p>
 			<div className="space-y-0.5">
 				{scene.rooms.map((r) => (
@@ -314,6 +316,28 @@ function ObjectsTab() {
 				{scene.rooms.length + scene.furniture.length + scene.symbols.length === 0 && <p className="px-2 py-1 text-xs text-muted">Порожньо</p>}
 			</div>
 		</div>
+	);
+}
+
+function FinishSummary() {
+	const scene = usePlannerStore((s) => s.scene);
+	const rows = finishSchedule(scene);
+	if (rows.length === 0) return null;
+	return (
+		<>
+			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Відомість оздоблення</p>
+			<div className="mb-3 space-y-0.5">
+				{rows.map((r) => (
+					<div key={r.label} className="px-1 py-0.5 text-xs">
+						<div className="flex justify-between gap-2">
+							<span className="truncate">{r.label}</span>
+							<span className="shrink-0 font-medium">{r.areaM2.toFixed(1)} м²</span>
+						</div>
+						<div className="truncate text-[11px] text-muted">{r.rooms.join(', ')}</div>
+					</div>
+				))}
+			</div>
+		</>
 	);
 }
 

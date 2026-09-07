@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { distance, polygonAreaM2 } from '../../domain/geometry';
-import { CEILING_FINISHES, roomSurfaceAreas, WALL_FINISHES } from '../../domain/finishes';
+import { CEILING_FINISHES, FLOOR_KINDS, roomSurfaceAreas, WALL_FINISHES } from '../../domain/finishes';
 import { routeStyle, ROUTE_STYLES, engSymbolLabel } from '../../constants/engineering';
 import type {
 	DimLine,
@@ -45,14 +45,7 @@ const MATERIALS: { v: WallMaterial; l: string }[] = [
 	{ v: 'glass', l: 'Скло' },
 ];
 const THICKNESS_PRESETS = [5, 8, 10, 12, 15, 20];
-const FLOORS: { v: FloorKind; l: string }[] = [
-	{ v: 'none', l: 'Без покриття' },
-	{ v: 'parquet', l: 'Паркет' },
-	{ v: 'laminate', l: 'Ламінат' },
-	{ v: 'tile', l: 'Плитка' },
-	{ v: 'carpet', l: 'Килим' },
-	{ v: 'concrete', l: 'Бетон' },
-];
+const FLOORS = FLOOR_KINDS;
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
