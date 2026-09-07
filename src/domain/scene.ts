@@ -48,6 +48,9 @@ export interface Room {
 	/** оздоблення стін / стелі (для підрахунку площ і кошторису) */
 	wallFinish?: WallFinish;
 	ceilingFinish?: CeilingFinish;
+	/** плінтус по периметру / стельовий карниз (погонні метри) */
+	skirting?: boolean;
+	cornice?: boolean;
 }
 
 export type OpeningType = 'door' | 'window' | 'opening';

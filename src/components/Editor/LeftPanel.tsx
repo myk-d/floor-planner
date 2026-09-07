@@ -332,7 +332,9 @@ function FinishSummary() {
 					<div key={r.key} className="px-1 text-xs">
 						<div className="flex justify-between gap-2">
 							<span className="truncate">{r.label}</span>
-							<span className="shrink-0 font-medium">{r.areaM2.toFixed(1)} м²</span>
+							<span className="shrink-0 font-medium">
+								{r.qty.toFixed(1)} {r.unit}
+							</span>
 						</div>
 						<div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-muted">
 							<span className="truncate">{r.rooms.join(', ')}</span>
@@ -345,7 +347,7 @@ function FinishSummary() {
 									onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
 									className="w-14 rounded border border-panel-border bg-page-bg px-1 py-0.5 text-right"
 								/>
-								<span>грн/м² =</span>
+								<span>грн/{r.unit} =</span>
 								<span className="w-16 text-right font-medium text-page-text">{r.cost.toLocaleString('uk')}</span>
 							</span>
 						</div>

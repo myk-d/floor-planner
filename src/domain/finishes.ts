@@ -31,16 +31,19 @@ export const floorKindLabel = (v: FloorKind): string => FLOOR_KINDS.find((f) => 
 export const wallFinishLabel = (v: WallFinish | undefined): string => WALL_FINISHES.find((f) => f.v === (v ?? 'none'))!.l;
 export const ceilingFinishLabel = (v: CeilingFinish | undefined): string => CEILING_FINISHES.find((f) => f.v === (v ?? 'none'))!.l;
 
+export type FinishUnit = 'м²' | 'пог.м';
+
 export interface FinishRow {
 	/** стабільний ключ `${surface}:${material}` (напр. `wall:tile`) — для розцінок */
 	key: string;
 	surface: 'floor' | 'wall' | 'ceiling';
 	label: string;
-	areaM2: number;
+	qty: number;
+	unit: FinishUnit;
 	rooms: string[];
 }
 
-/** Орієнтовні розцінки «матеріали + робота», грн/м². Користувач редагує під свої ціни. */
+/** Орієнтовні розцінки «матеріали + робота», грн за одиницю. Користувач редагує під свої ціни. */
 export const DEFAULT_FINISH_RATES: Record<string, number> = {
 	'floor:parquet': 1200,
 	'floor:laminate': 600,
@@ -52,35 +55,39 @@ export const DEFAULT_FINISH_RATES: Record<string, number> = {
 	'wall:plaster': 600,
 	'wall:tile': 1100,
 	'wall:panel': 500,
+	'wall:skirting': 150,
 	'ceiling:paint': 200,
 	'ceiling:stretch': 550,
 	'ceiling:plasterboard': 700,
 	'ceiling:whitewash': 120,
+	'ceiling:cornice': 200,
 };
 
-/** Зведена відомість оздоблення по всіх кімнатах: (поверхня + матеріал) → сумарна площа. */
+/** Зведена відомість оздоблення по всіх кімнатах: (поверхня + матеріал) → сумарна кількість. */
 export function finishSchedule(scene: Scene): FinishRow[] {
 	const map = new Map<string, FinishRow>();
-	const add = (surface: FinishRow['surface'], material: string, label: string, areaM2: number, roomName: string) => {
-		if (areaM2 <= 0) return;
+	const add = (surface: FinishRow['surface'], material: string, label: string, unit: FinishUnit, qty: number, roomName: string) => {
+		if (qty <= 0) return;
 		const key = `${surface}:${material}`;
 		const row = map.get(key);
 		if (row) {
-			row.areaM2 = Math.round((row.areaM2 + areaM2) * 100) / 100;
+			row.qty = Math.round((row.qty + qty) * 100) / 100;
 			if (!row.rooms.includes(roomName)) row.rooms.push(roomName);
 		} else {
-			map.set(key, { key, surface, label, areaM2: Math.round(areaM2 * 100) / 100, rooms: [roomName] });
+			map.set(key, { key, surface, label, unit, qty: Math.round(qty * 100) / 100, rooms: [roomName] });
 		}
 	};
 	for (const room of scene.rooms) {
 		if (room.points.length < 3) continue;
 		const a = roomSurfaceAreas(scene, room);
-		if (room.floor.kind !== 'none') add('floor', room.floor.kind, `Підлога: ${floorKindLabel(room.floor.kind)}`, a.floorM2, room.name);
-		if (room.wallFinish && room.wallFinish !== 'none') add('wall', room.wallFinish, `Стіни: ${wallFinishLabel(room.wallFinish)}`, a.wallNetM2, room.name);
-		if (room.ceilingFinish && room.ceilingFinish !== 'none') add('ceiling', room.ceilingFinish, `Стеля: ${ceilingFinishLabel(room.ceilingFinish)}`, a.ceilingM2, room.name);
+		if (room.floor.kind !== 'none') add('floor', room.floor.kind, `Підлога: ${floorKindLabel(room.floor.kind)}`, 'м²', a.floorM2, room.name);
+		if (room.wallFinish && room.wallFinish !== 'none') add('wall', room.wallFinish, `Стіни: ${wallFinishLabel(room.wallFinish)}`, 'м²', a.wallNetM2, room.name);
+		if (room.skirting) add('wall', 'skirting', 'Плінтус', 'пог.м', a.skirtingM, room.name);
+		if (room.ceilingFinish && room.ceilingFinish !== 'none') add('ceiling', room.ceilingFinish, `Стеля: ${ceilingFinishLabel(room.ceilingFinish)}`, 'м²', a.ceilingM2, room.name);
+		if (room.cornice) add('ceiling', 'cornice', 'Карниз стельовий', 'пог.м', a.corniceM, room.name);
 	}
 	const order = { floor: 0, wall: 1, ceiling: 2 };
-	return [...map.values()].sort((x, y) => order[x.surface] - order[y.surface] || y.areaM2 - x.areaM2);
+	return [...map.values()].sort((x, y) => order[x.surface] - order[y.surface] || y.qty - x.qty);
 }
 
 export interface FinishEstimateRow extends FinishRow {
@@ -88,12 +95,12 @@ export interface FinishEstimateRow extends FinishRow {
 	cost: number;
 }
 
-/** Відомість оздоблення з розцінками: площа × грн/м² → сума, і загальний підсумок. */
+/** Відомість оздоблення з розцінками: кількість × грн/од. → сума, і загальний підсумок. */
 export function finishEstimate(scene: Scene): { rows: FinishEstimateRow[]; total: number } {
 	const rates = scene.settings.finishRates ?? {};
 	const rows = finishSchedule(scene).map((r) => {
 		const rate = rates[r.key] ?? DEFAULT_FINISH_RATES[r.key] ?? 0;
-		return { ...r, rate, cost: Math.round(r.areaM2 * rate) };
+		return { ...r, rate, cost: Math.round(r.qty * rate) };
 	});
 	return { rows, total: rows.reduce((s, r) => s + r.cost, 0) };
 }
@@ -113,6 +120,9 @@ export interface RoomSurfaceAreas {
 	wallGrossM2: number;
 	openingsM2: number;
 	wallNetM2: number;
+	/** карниз = периметр; плінтус = периметр мінус ширина дверей */
+	corniceM: number;
+	skirtingM: number;
 }
 
 /** Площі поверхонь приміщення для оздоблення: підлога, стеля, стіни (з вирахуванням отворів). */
@@ -124,12 +134,14 @@ export function roomSurfaceAreas(scene: Scene, room: Room): RoomSurfaceAreas {
 
 	// отвори на стінах, що межують з полігоном кімнати
 	let openingsCm2 = 0;
+	let doorWidthCm = 0;
 	for (const o of scene.openings) {
 		const wall = scene.walls.find((w) => w.id === o.wallId);
 		if (!wall) continue;
 		const mid = { x: (wall.a.x + wall.b.x) / 2, y: (wall.a.y + wall.b.y) / 2 };
 		if (!nearPolygonEdge(mid, room.points, wall.thickness / 2 + 10)) continue;
 		openingsCm2 += o.width * openingFaceHeight(o, heightCm);
+		if (o.type === 'door' || o.type === 'opening') doorWidthCm += o.width;
 	}
 	const openingsM2 = openingsCm2 / 10000;
 
@@ -141,6 +153,8 @@ export function roomSurfaceAreas(scene: Scene, room: Room): RoomSurfaceAreas {
 		wallGrossM2: round2(wallGrossM2),
 		openingsM2: round2(openingsM2),
 		wallNetM2: round2(Math.max(0, wallGrossM2 - openingsM2)),
+		corniceM: round2(perimCm / 100),
+		skirtingM: round2(Math.max(0, perimCm - doorWidthCm) / 100),
 	};
 }
 

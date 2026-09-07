@@ -358,6 +358,16 @@ function RoomProps({
 					</Select>
 				</Field>
 			</div>
+			<div className="flex gap-4 text-sm">
+				<label className="flex items-center gap-2">
+					<input type="checkbox" checked={!!room.skirting} onChange={(e) => patch({ skirting: e.target.checked })} />
+					Плінтус
+				</label>
+				<label className="flex items-center gap-2">
+					<input type="checkbox" checked={!!room.cornice} onChange={(e) => patch({ cornice: e.target.checked })} />
+					Карниз
+				</label>
+			</div>
 			<div className="space-y-1 rounded-md bg-page-bg p-2 text-sm">
 				<div className="flex justify-between">
 					<span className="text-muted">Підлога / стеля</span>
@@ -371,6 +381,13 @@ function RoomProps({
 					{areas.perimeterM.toFixed(2)} × {areas.heightM.toFixed(2)} м = {areas.wallGrossM2.toFixed(1)}
 					{areas.openingsM2 > 0 && ` − ${areas.openingsM2.toFixed(1)} отвори`}
 				</div>
+				{(room.skirting || room.cornice) && (
+					<div className="text-xs text-muted">
+						{room.skirting && `плінтус ${areas.skirtingM.toFixed(1)} пог.м`}
+						{room.skirting && room.cornice && ' · '}
+						{room.cornice && `карниз ${areas.corniceM.toFixed(1)} пог.м`}
+					</div>
+				)}
 			</div>
 			<DiagonalCheck points={room.points} />
 		</>

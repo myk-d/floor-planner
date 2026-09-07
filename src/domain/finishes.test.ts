@@ -58,10 +58,27 @@ describe('roomSurfaceAreas', () => {
 		s.rooms.push(r1, r2);
 		const rows = finishSchedule(s);
 		const wallTile = rows.find((x) => x.label.startsWith('Стіни: Плитка'));
-		expect(wallTile?.areaM2).toBeCloseTo(37.8 * 2);
+		expect(wallTile?.qty).toBeCloseTo(37.8 * 2);
+		expect(wallTile?.unit).toBe('м²');
 		expect(wallTile?.rooms.sort()).toEqual(['Кухня', 'Санвузол']);
 		expect(rows.find((x) => x.label.startsWith('Підлога: Плитка'))?.rooms).toEqual(['Кухня']);
 		expect(rows.some((x) => x.surface === 'ceiling')).toBe(false);
+	});
+
+	it('skirting = perimeter − door widths, cornice = perimeter; priced per пог.м', () => {
+		const s = emptyScene();
+		const room = { ...rectRoom(), skirting: true, cornice: true };
+		s.rooms.push(room);
+		s.walls.push({ id: 'w', a: { x: 0, y: 0 }, b: { x: 400, y: 0 }, thickness: 10, material: 'brick', status: 'existing' });
+		s.openings.push({ id: 'd', wallId: 'w', offset: 200, width: 90, type: 'door', flip: false });
+		const rows = finishSchedule(s);
+		const sk = rows.find((r) => r.key === 'wall:skirting')!;
+		const co = rows.find((r) => r.key === 'ceiling:cornice')!;
+		expect(sk.unit).toBe('пог.м');
+		expect(sk.qty).toBeCloseTo(14 - 0.9); // perim 14 m − 0.9 m door
+		expect(co.qty).toBeCloseTo(14);
+		const est = finishEstimate(s);
+		expect(est.rows.find((r) => r.key === 'wall:skirting')!.cost).toBe(Math.round((14 - 0.9) * DEFAULT_FINISH_RATES['wall:skirting']));
 	});
 
 	it('finishEstimate: cost = area × rate, custom rate overrides default', () => {

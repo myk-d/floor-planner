@@ -194,7 +194,7 @@ function ExportStage({
 						title="Відомість оздоблення"
 						theme={theme}
 						rows={[
-							...finish.rows.map((r) => [r.label, `${r.areaM2.toFixed(1)} м²`, r.cost ? r.cost.toLocaleString('uk') : '—']),
+							...finish.rows.map((r) => [r.label, `${r.qty.toFixed(1)} ${r.unit}`, r.cost ? r.cost.toLocaleString('uk') : '—']),
 							['Разом, грн', '', finish.total.toLocaleString('uk')],
 						]}
 						widths={[170, 55, 55]}
