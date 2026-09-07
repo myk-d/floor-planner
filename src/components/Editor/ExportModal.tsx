@@ -8,7 +8,7 @@ import Modal from '../UI/Modal';
 import { usePlannerStore } from '../../store/usePlannerStore';
 import { sceneToSVG } from '../../domain/svgExport';
 import { defaultOptions, type SceneViewOptions } from './render/SceneView';
-import { exportFits, exportSceneToDataURL, type ExportOptions, type PaperSize, type ScaleRatio } from './render/exportScene';
+import { exportCompareToDataURL, exportFits, exportSceneToDataURL, type ExportOptions, type PaperSize, type ScaleRatio } from './render/exportScene';
 
 const OPTION_LABELS: { key: keyof SceneViewOptions; label: string }[] = [
 	{ key: 'showDimensions', label: 'Розміри стін' },
@@ -33,6 +33,11 @@ const THEMES: { v: RenderMode; l: string; bg: string; fg: string; border?: boole
 
 export default function ExportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 	const scene = usePlannerStore((s) => s.scene);
+	const variants = usePlannerStore((s) => s.variants);
+	const activeVariantId = usePlannerStore((s) => s.activeVariantId);
+	const variantsForSave = usePlannerStore((s) => s.variantsForSave);
+	const otherVariants = variants.filter((v) => v.id !== activeVariantId);
+	const [compareId, setCompareId] = useState('');
 	const [theme, setTheme] = useState<RenderMode>('blueprint');
 	const [format, setFormat] = useState<'png' | 'pdf' | 'svg'>('pdf');
 	const [pixelRatio, setPixelRatio] = useState(2);
@@ -75,7 +80,11 @@ export default function ExportModal({ open, onClose }: { open: boolean; onClose:
 				triggerDownload(url, `${fileBase}.svg`);
 				setTimeout(() => URL.revokeObjectURL(url), 2000);
 			} else {
-				const dataUrl = await exportSceneToDataURL(scene, exportOpts);
+				const compare = compareId ? variantsForSave().find((v) => v.id === compareId) : null;
+				const primaryName = variants.find((v) => v.id === activeVariantId)?.name ?? 'Варіант 1';
+				const dataUrl = compare
+					? await exportCompareToDataURL({ scene, label: primaryName }, { scene: compare.scene, label: compare.name }, exportOpts)
+					: await exportSceneToDataURL(scene, exportOpts);
 				if (format === 'png') {
 					triggerDownload(dataUrl, `${fileBase}.png`);
 				} else {
@@ -175,6 +184,26 @@ export default function ExportModal({ open, onClose }: { open: boolean; onClose:
 					</div>
 				)}
 				{!fits && <p className="rounded bg-red-50 px-2 py-1 text-xs text-danger">План не вміщається в аркуш за цим масштабом — оберіть менший масштаб або більший аркуш.</p>}
+
+				{otherVariants.length > 0 && (
+					<label>
+						<span className="mb-1 block text-xs font-medium text-muted">Порівняти з варіантом</span>
+						<select
+							value={compareId}
+							onChange={(e) => setCompareId(e.target.value)}
+							disabled={format === 'svg'}
+							className="w-full rounded-md border border-panel-border bg-panel px-3 py-2 disabled:opacity-50"
+						>
+							<option value="">— лише активний —</option>
+							{otherVariants.map((v) => (
+								<option key={v.id} value={v.id}>
+									{v.name}
+								</option>
+							))}
+						</select>
+						{compareId && <span className="mt-1 block text-[11px] text-muted">Два плани поруч; для однакового масштабу задайте «Масштаб креслення».</span>}
+					</label>
+				)}
 
 				<div>
 					<span className="mb-1.5 block text-xs font-medium text-muted">Показувати</span>

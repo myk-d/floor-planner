@@ -17,7 +17,7 @@ No separate typecheck script — run `npx tsc -b`.
 
 `preview.html` is a Firebase-free dev harness:
 - `/preview.html` — renders a demo scene through `SceneView` + the blueprint/line export.
-- `/preview.html?editor` — mounts the **full editor** (TopBar/Toolbar/LeftPanel/PlannerCanvas/
+- `/preview.html?editor` — mounts the **full editor** (TopBar/Toolbar/LeftPanel/PlannerCanvas/ExportModal/
   PropertiesPanel) with a demo project loaded into the store, no auth/Firestore.
 Not part of the production build (Vite only bundles `index.html`).
 
@@ -108,7 +108,10 @@ geometry client-side.
 - `SymbolShape` / `RouteShape` (with `gauge` label + `colorOverride`) / `CompassMark`.
 - `exportScene.tsx` — offscreen raster export (paper A4–A1, scale 1:20–1:200/DPI, title block,
   furniture spec + room explication tables). SVG export goes through `domain/svgExport.ts`
-  instead (a real vector path, not Konva).
+  instead (a real vector path, not Konva). `exportCompareToDataURL(primary, secondary, opts)`
+  renders two variants' PNGs and composites them side by side with captions (ExportModal shows a
+  "Порівняти з варіантом" picker when the project has >1 variant; scales match only at a fixed
+  `scaleRatio`).
 
 ### 3D (`src/components/Editor/3d/`, lazy-loaded)
 

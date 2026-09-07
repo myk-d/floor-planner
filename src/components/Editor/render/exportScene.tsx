@@ -322,3 +322,52 @@ export function exportSceneToDataURL(scene: Scene, opts: ExportOptions): Promise
 export function exportFits(scene: Scene, opts: ExportOptions): boolean {
 	return computeLayout(scene, opts).fits;
 }
+
+const loadImg = (src: string): Promise<HTMLImageElement> =>
+	new Promise((resolve, reject) => {
+		const img = new Image();
+		img.onload = () => resolve(img);
+		img.onerror = reject;
+		img.src = src;
+	});
+
+/**
+ * Два варіанти планування поруч на одному аркуші, з підписами.
+ * Кожну половину рендерить звичайний `exportSceneToDataURL`, тож обрані таблиці/штамп
+ * лишаються при кожному варіанті. Масштаб половин збігається лише коли заданий
+ * фіксований `scaleRatio` — інакше кожна вписується у свій розмір самостійно.
+ */
+export async function exportCompareToDataURL(
+	primary: { scene: Scene; label: string },
+	secondary: { scene: Scene; label: string },
+	opts: ExportOptions,
+): Promise<string> {
+	const [ua, ub] = await Promise.all([exportSceneToDataURL(primary.scene, opts), exportSceneToDataURL(secondary.scene, opts)]);
+	const [ia, ib] = await Promise.all([loadImg(ua), loadImg(ub)]);
+
+	const theme = themeForMode(opts.theme);
+	const pad = 24;
+	const gap = 40;
+	const capH = 56;
+	const panelW = Math.max(ia.width, ib.width);
+	const panelH = Math.max(ia.height, ib.height);
+
+	const canvas = document.createElement('canvas');
+	canvas.width = pad * 2 + panelW * 2 + gap;
+	canvas.height = pad * 2 + capH + panelH;
+	const ctx = canvas.getContext('2d')!;
+	ctx.fillStyle = theme.background;
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	ctx.fillStyle = theme.name === 'blueprint' ? '#ffffff' : '#111418';
+	ctx.font = 'bold 30px Inter, system-ui, sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText(primary.label, pad + panelW / 2, pad + capH / 2);
+	ctx.fillText(secondary.label, pad + panelW + gap + panelW / 2, pad + capH / 2);
+
+	const y = pad + capH;
+	ctx.drawImage(ia, pad + (panelW - ia.width) / 2, y);
+	ctx.drawImage(ib, pad + panelW + gap + (panelW - ib.width) / 2, y);
+	return canvas.toDataURL('image/png');
+}

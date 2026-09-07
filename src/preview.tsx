@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { Stage } from 'react-konva';
 import PlannerCanvas from './components/Editor/Canvas/PlannerCanvas';
 import ElevationView from './components/Editor/ElevationView';
+import ExportModal from './components/Editor/ExportModal';
 import LeftPanel from './components/Editor/LeftPanel';
 import PropertiesPanel from './components/Editor/PropertiesPanel';
 import ShortcutsHelp from './components/Editor/ShortcutsHelp';
@@ -117,6 +118,7 @@ function Preview() {
 function EditorHarness() {
 	const view3d = usePlannerStore((s) => s.view3d);
 	const scene = usePlannerStore((s) => s.scene);
+	const [exportOpen, setExportOpen] = useState(false);
 	useEffect(() => {
 		const now = Date.now();
 		usePlannerStore.getState().loadProject({
@@ -143,7 +145,7 @@ function EditorHarness() {
 	return (
 		<MemoryRouter>
 			<div className="flex h-screen flex-col">
-				<TopBar onExport={() => {}} onSave={() => {}} saving={false} />
+				<TopBar onExport={() => setExportOpen(true)} onSave={() => {}} saving={false} />
 				<div className="flex min-h-0 flex-1">
 					{!view3d && <Toolbar />}
 					{!view3d && <LeftPanel />}
@@ -160,6 +162,7 @@ function EditorHarness() {
 				</div>
 				<ElevationView />
 				<ShortcutsHelp />
+				<ExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
 			</div>
 		</MemoryRouter>
 	);
