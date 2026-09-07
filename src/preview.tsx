@@ -7,6 +7,7 @@ import PlannerCanvas from './components/Editor/Canvas/PlannerCanvas';
 import ElevationView from './components/Editor/ElevationView';
 import LeftPanel from './components/Editor/LeftPanel';
 import PropertiesPanel from './components/Editor/PropertiesPanel';
+import ShortcutsHelp from './components/Editor/ShortcutsHelp';
 import Toolbar from './components/Editor/Toolbar';
 import TopBar from './components/Editor/TopBar';
 
@@ -117,6 +118,18 @@ function EditorHarness() {
 			createdByEmail: 'demo@demo',
 		});
 	}, []);
+	// мінімальні гарячі клавіші для dev-харнеса (у застосунку — у pages/Editor.tsx)
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			const t = e.target as HTMLElement;
+			if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
+			const s = usePlannerStore.getState();
+			if (e.key === '?') s.setHelpOpen(!s.helpOpen);
+			else if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) s.frameSelection(s.stageSize.width, s.stageSize.height);
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, []);
 	return (
 		<MemoryRouter>
 			<div className="flex h-screen flex-col">
@@ -136,6 +149,7 @@ function EditorHarness() {
 					{!view3d && <PropertiesPanel />}
 				</div>
 				<ElevationView />
+				<ShortcutsHelp />
 			</div>
 		</MemoryRouter>
 	);

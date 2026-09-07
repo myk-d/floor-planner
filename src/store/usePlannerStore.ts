@@ -146,6 +146,8 @@ interface PlannerState {
 	dragSnapshot: Scene | null;
 	elevationWallId: string | null;
 	view3d: boolean;
+	/** відкрита довідка гарячих клавіш */
+	helpOpen: boolean;
 
 	loadProject: (doc: ProjectDoc) => void;
 	markSaved: () => void;
@@ -161,6 +163,7 @@ interface PlannerState {
 	frameSelection: (stageW: number, stageH: number) => void;
 	toggleGrid: () => void;
 	toggleSnap: () => void;
+	setHelpOpen: (open: boolean) => void;
 	setStageSize: (size: { width: number; height: number }) => void;
 	setUnits: (units: Units) => void;
 	setGridStep: (grid: number) => void;
@@ -405,6 +408,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	dragSnapshot: null,
 	elevationWallId: null,
 	view3d: false,
+	helpOpen: false,
 
 	loadProject: (doc) =>
 		set({
@@ -471,6 +475,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 
 	toggleGrid: () => set({ showGrid: !get().showGrid }),
 	toggleSnap: () => set({ snapEnabled: !get().snapEnabled }),
+	setHelpOpen: (open) => set({ helpOpen: open }),
 	setStageSize: (stageSize) => set({ stageSize }),
 	setUnits: (units) => get().commit((d) => void (d.settings.units = units)),
 	setGridStep: (grid) => get().commit((d) => void (d.settings.grid = grid)),

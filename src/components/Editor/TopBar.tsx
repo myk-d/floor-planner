@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Compass, Download, FileDown, Grid2x2, Hammer, Maximize, Palette, PenLine, Redo2, Rows3, ScanSearch, Save, Undo2, Zap } from 'lucide-react';
+import { ArrowLeft, Check, CircleHelp, Compass, Download, FileDown, Grid2x2, Hammer, Maximize, Palette, PenLine, Redo2, Rows3, ScanSearch, Save, Undo2, Zap } from 'lucide-react';
 import { toProjectFile } from '../../domain/projectFile';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +36,7 @@ export default function TopBar({ onExport, onSave, saving }: { onExport: () => v
 		autoDetectRooms,
 		view3d,
 		toggle3d,
+		setHelpOpen,
 	} = usePlannerStore();
 	const [title, setLocalTitle] = useState(scene.settings.title);
 
@@ -165,6 +166,13 @@ export default function TopBar({ onExport, onSave, saving }: { onExport: () => v
 			</select>
 
 			<div className="ml-auto flex items-center gap-2">
+				<button
+					title="Гарячі клавіші (?)"
+					onClick={() => setHelpOpen(true)}
+					className="flex h-8 w-8 items-center justify-center rounded-md border border-panel-border text-muted hover:bg-page-bg"
+				>
+					<CircleHelp className="h-4 w-4" />
+				</button>
 				<span className="flex items-center gap-1 text-xs text-muted">
 					{dirty ? (
 						'Не збережено'

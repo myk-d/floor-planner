@@ -8,6 +8,7 @@ import LeftPanel from '../components/Editor/LeftPanel';
 
 const Scene3D = lazy(() => import('../components/Editor/3d/Scene3D'));
 import PropertiesPanel from '../components/Editor/PropertiesPanel';
+import ShortcutsHelp from '../components/Editor/ShortcutsHelp';
 import Toolbar from '../components/Editor/Toolbar';
 import TopBar from '../components/Editor/TopBar';
 import { toast } from '../components/UI/toast';
@@ -156,6 +157,12 @@ export default function Editor() {
 				}
 				return;
 			}
+			if (e.key === '?') {
+				e.preventDefault();
+				const { helpOpen, setHelpOpen } = usePlannerStore.getState();
+				setHelpOpen(!helpOpen);
+				return;
+			}
 			if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
 				e.preventDefault();
 				const { stageSize, frameSelection } = usePlannerStore.getState();
@@ -220,6 +227,7 @@ export default function Editor() {
 			</div>
 			<ExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
 			<ElevationView />
+			<ShortcutsHelp />
 		</div>
 	);
 }
