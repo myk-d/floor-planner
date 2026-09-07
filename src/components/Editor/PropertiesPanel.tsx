@@ -422,33 +422,33 @@ function TileCalc({ room, scene }: { room: Room; scene: Scene }) {
 	return (
 		<div className="space-y-2 rounded-md bg-page-bg p-2 text-sm">
 			<div className="font-medium">Розкладка плитки</div>
+			<Field label="Плитка, см">
+				<div className="flex items-center gap-1.5">
+					<Input type="number" className="min-w-0 flex-1 px-2" value={spec.w} onChange={(e) => setTileSpec({ w: num(e.target.value, 1) })} />
+					<span className="text-muted">×</span>
+					<Input type="number" className="min-w-0 flex-1 px-2" value={spec.h} onChange={(e) => setTileSpec({ h: num(e.target.value, 1) })} />
+				</div>
+			</Field>
 			<div className="grid grid-cols-2 gap-2">
-				<Field label="Плитка, см">
-					<div className="flex items-center gap-1">
-						<Input type="number" value={spec.w} onChange={(e) => setTileSpec({ w: num(e.target.value, 1) })} />
-						<span className="text-muted">×</span>
-						<Input type="number" value={spec.h} onChange={(e) => setTileSpec({ h: num(e.target.value, 1) })} />
-					</div>
-				</Field>
 				<Field label="Шов, мм">
-					<Input type="number" value={spec.grout} onChange={(e) => setTileSpec({ grout: num(e.target.value) })} />
-				</Field>
-				<Field label="Розкладка">
-					<Select value={spec.pattern} onChange={(e) => setTileSpec({ pattern: e.target.value as TilePattern })}>
-						{TILE_PATTERNS.map((p) => (
-							<option key={p.v} value={p.v}>
-								{p.l}
-							</option>
-						))}
-					</Select>
+					<Input type="number" className="px-2" value={spec.grout} onChange={(e) => setTileSpec({ grout: num(e.target.value) })} />
 				</Field>
 				<Field label="Запас, %">
-					<Input type="number" value={spec.wastePct} onChange={(e) => setTileSpec({ wastePct: num(e.target.value) })} />
-				</Field>
-				<Field label="Шт. у пачці">
-					<Input type="number" value={spec.perBox} onChange={(e) => setTileSpec({ perBox: num(e.target.value) })} />
+					<Input type="number" className="px-2" value={spec.wastePct} onChange={(e) => setTileSpec({ wastePct: num(e.target.value) })} />
 				</Field>
 			</div>
+			<Field label="Розкладка">
+				<Select value={spec.pattern} onChange={(e) => setTileSpec({ pattern: e.target.value as TilePattern })}>
+					{TILE_PATTERNS.map((p) => (
+						<option key={p.v} value={p.v}>
+							{p.l}
+						</option>
+					))}
+				</Select>
+			</Field>
+			<Field label="Шт. у пачці">
+				<Input type="number" className="px-2" value={spec.perBox} onChange={(e) => setTileSpec({ perBox: num(e.target.value) })} />
+			</Field>
 			<div className="space-y-1 border-t border-panel-border pt-1">
 				{t.floor && line('Підлога', t.floor)}
 				{t.walls && line('Стіни', t.walls)}
