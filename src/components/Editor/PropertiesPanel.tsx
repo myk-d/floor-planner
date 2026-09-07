@@ -22,6 +22,7 @@ import type {
 	Surface,
 	SymbolItem,
 	TextLabel,
+	Vec,
 	Wall,
 	WallMaterial,
 	Zone,
@@ -331,7 +332,30 @@ function RoomProps({
 					<span className="font-medium">{(polygonPerimeterCm(room.points) / 100).toFixed(2)} м</span>
 				</div>
 			</div>
+			<DiagonalCheck points={room.points} />
 		</>
+	);
+}
+
+/** Перевірка «прямокутності» чотирикутної кімнати за різницею діагоналей. */
+function DiagonalCheck({ points }: { points: Vec[] }) {
+	if (points.length !== 4) return null;
+	const d1 = distance(points[0], points[2]);
+	const d2 = distance(points[1], points[3]);
+	const diff = Math.abs(d1 - d2);
+	const skewed = diff > 2;
+	return (
+		<div className={`rounded-md p-2 text-sm ${skewed ? 'bg-amber-50 text-amber-900' : 'bg-page-bg'}`}>
+			<div className="flex justify-between">
+				<span className="text-muted">Діагоналі</span>
+				<span className="font-medium">
+					{(d1 / 100).toFixed(2)} · {(d2 / 100).toFixed(2)} м
+				</span>
+			</div>
+			<div className="mt-0.5 text-xs">
+				{skewed ? `Кімната не прямокутна — різниця діагоналей ${Math.round(diff)} см` : 'Кути прямі (діагоналі рівні)'}
+			</div>
+		</div>
 	);
 }
 
