@@ -5,6 +5,7 @@ import { ENG_CATEGORIES, ENG_SYMBOLS, ROUTE_STYLES, ZONE_KINDS, type EngCategory
 import { circuitGroups } from '../../domain/circuits';
 import { finishEstimate } from '../../domain/finishes';
 import { engineeringSpec } from '../../domain/engspec';
+import { reconfigSummary } from '../../domain/reconfig';
 import type { FloorKind, LayerName, WallMaterial } from '../../domain/scene';
 import { cn } from '../../utils/cn';
 import { toWorld, usePlannerStore } from '../../store/usePlannerStore';
@@ -302,6 +303,7 @@ function ObjectsTab() {
 					</div>
 				</>
 			)}
+			<ReconfigSummary />
 			<EngSummary />
 			<FinishSummary />
 			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Елементи</p>
@@ -318,6 +320,30 @@ function ObjectsTab() {
 				{scene.rooms.length + scene.furniture.length + scene.symbols.length === 0 && <p className="px-2 py-1 text-xs text-muted">Порожньо</p>}
 			</div>
 		</div>
+	);
+}
+
+function ReconfigSummary() {
+	const scene = usePlannerStore((s) => s.scene);
+	const r = reconfigSummary(scene);
+	if (!r.any) return null;
+	const rows: [string, string][] = [];
+	if (r.wallsDemolish.count > 0) rows.push(['Демонтаж стін', `${r.wallsDemolish.count} · ${r.wallsDemolish.lengthM.toFixed(1)} пог.м`]);
+	if (r.wallsNew.count > 0) rows.push(['Нові перегородки', `${r.wallsNew.count} · ${r.wallsNew.lengthM.toFixed(1)} пог.м`]);
+	if (r.openingsDemolish > 0) rows.push(['Закласти отворів', `${r.openingsDemolish} шт`]);
+	if (r.openingsNew > 0) rows.push(['Нові отвори', `${r.openingsNew} шт`]);
+	return (
+		<>
+			<p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted">Перепланування</p>
+			<div className="mb-3 space-y-0.5">
+				{rows.map(([label, value]) => (
+					<div key={label} className="flex justify-between gap-2 px-1 text-xs">
+						<span className="truncate">{label}</span>
+						<span className="shrink-0 font-medium">{value}</span>
+					</div>
+				))}
+			</div>
+		</>
 	);
 }
 
