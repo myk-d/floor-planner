@@ -51,6 +51,9 @@ geometry client-side.
   rows with `qty`/`unit`, incl. `Room.skirting`/`cornice`); `finishEstimate`
   (× `settings.finishRates` / `DEFAULT_FINISH_RATES` → cost + total);
   `WALL_FINISHES`/`CEILING_FINISHES`/`FLOOR_KINDS` (`Room.wallFinish`/`ceilingFinish`).
+- `tiling.ts` — `tileCount(areaM2, spec)` (tiles + boxes for a surface, grout widens the cell,
+  brick/diagonal patterns add waste) + `roomTiling` / `tilingSchedule` (rooms with tile floor or
+  `wallFinish`); `settings.tile: TileSpec` (`DEFAULT_TILE`), edited in `PropertiesPanel` RoomProps.
 - `schedule.ts` — `furnitureSchedule`, `roomSchedule`; `engspec.ts` — `engineeringSpec` (symbols
   by kind шт + routes by kind/gauge м); `reconfig.ts` — `reconfigSummary` (demolished/new walls
   count + пог.м, openings, from `status`) + `hiddenInPhase(phase, status)` driving

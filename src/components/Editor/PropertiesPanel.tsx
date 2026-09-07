@@ -12,6 +12,7 @@ import {
 import { useState } from 'react';
 import { distance, polygonAreaM2 } from '../../domain/geometry';
 import { CEILING_FINISHES, FLOOR_KINDS, roomSurfaceAreas, WALL_FINISHES } from '../../domain/finishes';
+import { DEFAULT_TILE, roomTiling, type TileEstimate, type TilePattern } from '../../domain/tiling';
 import { routeStyle, ROUTE_STYLES, engSymbolLabel, symbolMountHeight } from '../../constants/engineering';
 import type {
 	DimLine,
@@ -390,7 +391,71 @@ function RoomProps({
 				)}
 			</div>
 			<DiagonalCheck points={room.points} />
+			{(room.floor.kind === 'tile' || room.wallFinish === 'tile') && <TileCalc room={room} scene={scene} />}
 		</>
+	);
+}
+
+const TILE_PATTERNS: { v: TilePattern; l: string }[] = [
+	{ v: 'grid', l: 'Прямо' },
+	{ v: 'brick', l: 'Зі зсувом' },
+	{ v: 'diagonal', l: 'По діагоналі' },
+];
+
+/** Розкладка плитки для приміщення + редактор глобальних параметрів плитки. */
+function TileCalc({ room, scene }: { room: Room; scene: Scene }) {
+	const setTileSpec = usePlannerStore((s) => s.setTileSpec);
+	const spec = scene.settings.tile ?? DEFAULT_TILE;
+	const t = roomTiling(scene, room, spec);
+	const num = (v: string, min = 0) => Math.max(min, Number(v) || 0);
+	const line = (label: string, e: TileEstimate) => (
+		<div className="flex justify-between text-xs">
+			<span className="text-muted">
+				{label} · {e.areaM2.toFixed(2)} м²
+			</span>
+			<span className="font-medium">
+				{e.withWaste} шт{e.boxes > 0 && ` · ${e.boxes} пач.`}
+			</span>
+		</div>
+	);
+	return (
+		<div className="space-y-2 rounded-md bg-page-bg p-2 text-sm">
+			<div className="font-medium">Розкладка плитки</div>
+			<div className="grid grid-cols-2 gap-2">
+				<Field label="Плитка, см">
+					<div className="flex items-center gap-1">
+						<Input type="number" value={spec.w} onChange={(e) => setTileSpec({ w: num(e.target.value, 1) })} />
+						<span className="text-muted">×</span>
+						<Input type="number" value={spec.h} onChange={(e) => setTileSpec({ h: num(e.target.value, 1) })} />
+					</div>
+				</Field>
+				<Field label="Шов, мм">
+					<Input type="number" value={spec.grout} onChange={(e) => setTileSpec({ grout: num(e.target.value) })} />
+				</Field>
+				<Field label="Розкладка">
+					<Select value={spec.pattern} onChange={(e) => setTileSpec({ pattern: e.target.value as TilePattern })}>
+						{TILE_PATTERNS.map((p) => (
+							<option key={p.v} value={p.v}>
+								{p.l}
+							</option>
+						))}
+					</Select>
+				</Field>
+				<Field label="Запас, %">
+					<Input type="number" value={spec.wastePct} onChange={(e) => setTileSpec({ wastePct: num(e.target.value) })} />
+				</Field>
+				<Field label="Шт. у пачці">
+					<Input type="number" value={spec.perBox} onChange={(e) => setTileSpec({ perBox: num(e.target.value) })} />
+				</Field>
+			</div>
+			<div className="space-y-1 border-t border-panel-border pt-1">
+				{t.floor && line('Підлога', t.floor)}
+				{t.walls && line('Стіни', t.walls)}
+				<div className="text-[11px] text-muted">
+					запас {(t.floor ?? t.walls)!.wastePct}% · плитка з швом {(t.floor ?? t.walls)!.tileAreaM2.toFixed(3)} м²
+				</div>
+			</div>
+		</div>
 	);
 }
 

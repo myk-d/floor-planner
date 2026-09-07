@@ -214,7 +214,26 @@ export interface SceneSettings {
 	title: string;
 	/** розцінки оздоблення, грн/м², ключ `${surface}:${material}` (напр. `floor:tile`) */
 	finishRates?: Record<string, number>;
+	/** параметри розкладки плитки (для приміщень з плиткою на підлозі / стінах) */
+	tile?: TileSpec;
 }
+
+export type TilePattern = 'grid' | 'brick' | 'diagonal';
+
+export interface TileSpec {
+	/** розмір плитки, см */
+	w: number;
+	h: number;
+	/** ширина шва, мм */
+	grout: number;
+	pattern: TilePattern;
+	/** запас на підрізку та бій, % */
+	wastePct: number;
+	/** плиток у пачці (0 — не рахувати пачки) */
+	perBox: number;
+}
+
+export const DEFAULT_TILE: TileSpec = { w: 30, h: 30, grout: 2, pattern: 'grid', wastePct: 10, perBox: 0 };
 
 export interface Scene {
 	walls: Wall[];
@@ -257,6 +276,7 @@ export const DEFAULT_SETTINGS: SceneSettings = {
 	layers: DEFAULT_LAYERS,
 	title: 'Без назви',
 	finishRates: {},
+	tile: { ...DEFAULT_TILE },
 };
 
 function cloneLayers(layers: Layers): Layers {
@@ -338,6 +358,7 @@ export function normalizeScene(raw: LegacyScene | undefined, title: string): Sce
 			...base.settings,
 			...rawSettings,
 			layers: { ...base.settings.layers, ...(rawSettings.layers ?? {}) },
+			tile: { ...DEFAULT_TILE, ...(rawSettings.tile ?? {}) },
 			title,
 		},
 	};

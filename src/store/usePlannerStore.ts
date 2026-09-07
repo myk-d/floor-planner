@@ -5,6 +5,7 @@ import { detectRooms, reconcileRooms } from '../domain/rooms';
 import { moveNode, splitWall } from '../domain/walls';
 import {
 	DEFAULT_FLOOR,
+	DEFAULT_TILE,
 	makeRoomL,
 	makeRoomRect,
 	makeRoomT,
@@ -27,6 +28,7 @@ import {
 	type Surface,
 	type SymbolItem,
 	type TextLabel,
+	type TileSpec,
 	type Units,
 	type Vec,
 	type Wall,
@@ -213,6 +215,7 @@ interface PlannerState {
 	toggleColorByCircuit: () => void;
 	setWallHeight: (cm: number) => void;
 	setFinishRate: (key: string, rate: number) => void;
+	setTileSpec: (patch: Partial<TileSpec>) => void;
 	addRoomPreset: (kind: 'rect' | 'L' | 'U' | 'T', at: Vec) => void;
 	saveStyleboard: (name: string) => void;
 	deleteStyleboard: (id: string) => void;
@@ -875,6 +878,10 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
 	setFinishRate: (key, rate) =>
 		get().commit((d) => {
 			d.settings.finishRates = { ...(d.settings.finishRates ?? {}), [key]: Math.max(0, Math.round(rate)) };
+		}),
+	setTileSpec: (patch) =>
+		get().commit((d) => {
+			d.settings.tile = { ...DEFAULT_TILE, ...(d.settings.tile ?? {}), ...patch };
 		}),
 
 	addRoomPreset: (kind, at) => {
